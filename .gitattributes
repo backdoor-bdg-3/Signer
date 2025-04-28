@@ -1,0 +1,18 @@
+# Git LFS configuration
+# Set file types to be tracked by Git LFS
+
+# iOS app files
+*.ipa filter=lfs diff=lfs merge=lfs -text
+
+# Provisioning profiles
+*.mobileprovision filter=lfs diff=lfs merge=lfs -text
+
+# Certificate files
+*.p12 filter=lfs diff=lfs merge=lfs -text
+
+# Manifest files
+*.plist filter=lfs diff=lfs merge=lfs -text
+
+# Any other large binary files that should be tracked
+*.dylib filter=lfs diff=lfs merge=lfs -text
+*.zip filter=lfs diff=lfs merge=lfs -text

@@ -89,9 +89,23 @@ class SigningHandler(FileSystemEventHandler):
             output_filename = f"signed_{os.path.basename(ipa_path)}"
             output_path = os.path.join(self.signed_dir, output_filename)
             
-            # Execute zsign command
+            # Execute zsign command - use full path to ensure it's found
+            zsign_path = '/usr/local/bin/zsign'
+            if not os.path.exists(zsign_path):
+                # Fall back to PATH resolution if the direct path doesn't exist
+                zsign_path = shutil.which('zsign')
+                if not zsign_path:
+                    # Last resort - try the symlink location
+                    if os.path.exists('/usr/bin/zsign'):
+                        zsign_path = '/usr/bin/zsign'
+                    else:
+                        logger.error("zsign executable not found. Please check installation.")
+                        with open(os.path.join(job_dir, 'error.log'), 'w') as f:
+                            f.write("zsign executable not found. Please check installation.")
+                        return
+                    
             cmd = [
-                'zsign', 
+                zsign_path, 
                 '-k', p12_path, 
                 '-p', p12_password, 
                 '-m', provision_path, 

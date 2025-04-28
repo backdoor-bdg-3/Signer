@@ -88,9 +88,21 @@ def sign_app():
         # Extract provision info to check for Apple Developer certificate
         provision_info = extract_udids_from_provision(provision_path)
         
-        # Execute zsign command
+        # Execute zsign command - use full path to ensure it's found
+        zsign_path = '/usr/local/bin/zsign'
+        if not os.path.exists(zsign_path):
+            # Fall back to PATH resolution if the direct path doesn't exist
+            zsign_path = shutil.which('zsign')
+            if not zsign_path:
+                # Last resort - try the symlink location
+                if os.path.exists('/usr/bin/zsign'):
+                    zsign_path = '/usr/bin/zsign'
+                else:
+                    flash(f"zsign executable not found. Please check installation.", "error")
+                    return redirect(url_for('main.index'))
+                
         cmd = [
-            'zsign', 
+            zsign_path, 
             '-k', p12_path, 
             '-p', form.p12_password.data, 
             '-m', provision_path, 
@@ -239,9 +251,21 @@ def sign_app_advanced():
         # Extract provision info to check for Apple Developer certificate
         provision_info = extract_udids_from_provision(provision_path)
         
-        # Execute zsign command
+        # Execute zsign command - use full path to ensure it's found
+        zsign_path = '/usr/local/bin/zsign'
+        if not os.path.exists(zsign_path):
+            # Fall back to PATH resolution if the direct path doesn't exist
+            zsign_path = shutil.which('zsign')
+            if not zsign_path:
+                # Last resort - try the symlink location
+                if os.path.exists('/usr/bin/zsign'):
+                    zsign_path = '/usr/bin/zsign'
+                else:
+                    flash(f"zsign executable not found. Please check installation.", "error")
+                    return redirect(url_for('main.advanced'))
+                
         cmd = [
-            'zsign', 
+            zsign_path, 
             '-k', p12_path, 
             '-p', form.p12_password.data, 
             '-m', provision_path, 
@@ -642,6 +666,7 @@ def entitlements_page():
 @main_bp.route('/extract-entitlements', methods=['POST'])
 def extract_entitlements():
     """Extract entitlements from uploaded IPA and provisioning profile"""
+    temp_dir = None
     try:
         # Check if files were uploaded
         if 'ipa_file' not in request.files or 'provision_file' not in request.files:
@@ -655,30 +680,73 @@ def extract_entitlements():
         
         # Create temporary directory
         temp_dir = tempfile.mkdtemp()
+        print(f"Created temp directory: {temp_dir}")
         
         try:
             # Save uploaded files
             ipa_path = os.path.join(temp_dir, secure_filename(ipa_file.filename))
             provision_path = os.path.join(temp_dir, secure_filename(provision_file.filename))
             
+            print(f"Saving IPA to: {ipa_path}")
             ipa_file.save(ipa_path)
+            print(f"Saving provision to: {provision_path}")
             provision_file.save(provision_path)
             
-            # Store files temporarily using Git LFS for future reference
+            # Verify files were saved correctly
+            if not os.path.exists(ipa_path) or os.path.getsize(ipa_path) == 0:
+                return jsonify({'error': 'Failed to save IPA file properly'}), 500
+                
+            if not os.path.exists(provision_path) or os.path.getsize(provision_path) == 0:
+                return jsonify({'error': 'Failed to save provision file properly'}), 500
+            
+            # Generate a unique session ID
             session_id = str(uuid.uuid4())
             
-            with open(ipa_path, 'rb') as f:
-                storage_manager.save_file(f, 'temp', f"{session_id}_{os.path.basename(ipa_path)}")
+            # Store files temporarily (with error handling)
+            try:
+                print(f"Storing IPA file in storage manager")
+                with open(ipa_path, 'rb') as f:
+                    success, ipa_stored_path = storage_manager.save_file(f, 'temp', f"{session_id}_{os.path.basename(ipa_path)}")
+                    if not success:
+                        print(f"Warning: Failed to store IPA file: {ipa_stored_path}")
+            except Exception as store_err:
+                print(f"Error storing IPA file: {str(store_err)}")
+                # Continue even if storage fails
             
-            with open(provision_path, 'rb') as f:
-                storage_manager.save_file(f, 'temp', f"{session_id}_{os.path.basename(provision_path)}")
+            try:
+                print(f"Storing provision file in storage manager")
+                with open(provision_path, 'rb') as f:
+                    success, prov_stored_path = storage_manager.save_file(f, 'temp', f"{session_id}_{os.path.basename(provision_path)}")
+                    if not success:
+                        print(f"Warning: Failed to store provision file: {prov_stored_path}")
+            except Exception as store_err:
+                print(f"Error storing provision file: {str(store_err)}")
+                # Continue even if storage fails
             
-            # Extract entitlements
-            app_entitlements = extract_app_entitlements(ipa_path)
-            provision_entitlements = extract_provision_entitlements(provision_path)
+            # Extract entitlements with better error handling
+            try:
+                print(f"Extracting app entitlements")
+                app_entitlements = extract_app_entitlements(ipa_path)
+                print(f"Found {len(app_entitlements)} app entitlements")
+            except Exception as app_err:
+                print(f"Error extracting app entitlements: {str(app_err)}")
+                app_entitlements = {}
+            
+            try:
+                print(f"Extracting provision entitlements")
+                provision_entitlements = extract_provision_entitlements(provision_path)
+                print(f"Found {len(provision_entitlements)} provision entitlements")
+            except Exception as prov_err:
+                print(f"Error extracting provision entitlements: {str(prov_err)}")
+                provision_entitlements = {}
             
             # Extract UDID information
-            provision_info = extract_udids_from_provision(provision_path)
+            try:
+                print(f"Extracting UDID information")
+                provision_info = extract_udids_from_provision(provision_path)
+            except Exception as udid_err:
+                print(f"Error extracting UDIDs: {str(udid_err)}")
+                provision_info = {}
             
             # Compare entitlements
             all_entitlements = {}
@@ -699,6 +767,7 @@ def extract_entitlements():
                         'in_provision': True
                     }
             
+            print(f"Successfully processed entitlements")
             return jsonify({
                 'app_entitlements': app_entitlements,
                 'provision_entitlements': provision_entitlements,
@@ -707,9 +776,19 @@ def extract_entitlements():
                 'session_id': session_id
             })
             
+        except Exception as inner_err:
+            print(f"Inner error in extract_entitlements: {str(inner_err)}")
+            return jsonify({'error': f"Error processing files: {str(inner_err)}"}), 500
+            
         finally:
             # Clean up temporary directory
-            shutil.rmtree(temp_dir, ignore_errors=True)
+            if temp_dir and os.path.exists(temp_dir):
+                print(f"Cleaning up temp directory: {temp_dir}")
+                shutil.rmtree(temp_dir, ignore_errors=True)
             
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        print(f"Outer error in extract_entitlements: {str(e)}")
+        # Make sure we clean up in case of exception
+        if temp_dir and os.path.exists(temp_dir):
+            shutil.rmtree(temp_dir, ignore_errors=True)
+        return jsonify({'error': f"Server error: {str(e)}"}), 500
