@@ -148,6 +148,9 @@ def main():
     
     # Get max concurrent tasks from environment
     max_concurrent = int(os.environ.get('MAX_CONCURRENT_TASKS', 2))
+    # Log worker port
+    port = os.environ.get("PORT", "12001")
+    logger.info(f"Worker starting on port {port}")
     
     logger.info(f"Starting worker with {max_concurrent} concurrent tasks. Monitoring directory: {upload_dir}")
     

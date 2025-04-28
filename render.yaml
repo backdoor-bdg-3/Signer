@@ -21,6 +21,8 @@ services:
         value: 600
       - key: LFS_REPO_PATH
         value: /tmp/lfs_storage
+      - key: PORT
+        value: 12000
 
   - type: web
     name: backdoor-web-signer-worker
@@ -41,3 +43,5 @@ services:
         value: 2
       - key: LFS_REPO_PATH
         value: /tmp/lfs_storage
+      - key: PORT
+        value: 12001
