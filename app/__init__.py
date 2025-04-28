@@ -9,9 +9,12 @@ def create_app():
     app.config['SIGNED_FOLDER'] = os.path.join(app.root_path, 'static', 'signed')
     app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024 * 1024  # 20GB max upload size
     
-    # Ensure upload and signed directories exist
+    # Ensure all necessary directories exist
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     os.makedirs(app.config['SIGNED_FOLDER'], exist_ok=True)
+    os.makedirs(os.path.join(app.static_folder, 'signed'), exist_ok=True)
+    os.makedirs(os.path.join(app.static_folder, 'manifests'), exist_ok=True)
+    os.makedirs(os.path.join(app.static_folder, 'temp'), exist_ok=True)
     
     from app.routes import main_bp
     app.register_blueprint(main_bp)

@@ -18,10 +18,24 @@
             </div>
             <nav>
                 <ul>
-                    <li><a href="{{ url_for('main.index') }}" class="nav-link {% if request.path == url_for('main.index') %}active{% endif %}">Home</a></li>
-                    <li><a href="{{ url_for('main.advanced') }}" class="nav-link {% if request.path == url_for('main.advanced') %}active{% endif %}">Advanced</a></li>
-                    <li><a href="{{ url_for('main.about') }}" class="nav-link {% if request.path == url_for('main.about') %}active{% endif %}">About</a></li>
-                    <li><a href="{{ url_for('main.contact') }}" class="nav-link {% if request.path == url_for('main.contact') %}active{% endif %}">Contact</a></li>
+                    <li><a href="{{ url_for('main.index') }}" class="nav-link {% if request.path == url_for('main.index') %}active{% endif %}">
+                        <i class="fas fa-home"></i> Home
+                    </a></li>
+                    <li><a href="{{ url_for('main.basic_signing') }}" class="nav-link {% if request.path == url_for('main.basic_signing') %}active{% endif %}">
+                        <i class="fas fa-signature"></i> Sign App
+                    </a></li>
+                    <li><a href="{{ url_for('main.advanced') }}" class="nav-link {% if request.path == url_for('main.advanced') %}active{% endif %}">
+                        <i class="fas fa-cogs"></i> Advanced
+                    </a></li>
+                    <li><a href="{{ url_for('main.entitlements_page') }}" class="nav-link {% if request.path == url_for('main.entitlements_page') %}active{% endif %}">
+                        <i class="fas fa-shield-alt"></i> Entitlements
+                    </a></li>
+                    <li><a href="{{ url_for('main.about') }}" class="nav-link {% if request.path == url_for('main.about') %}active{% endif %}">
+                        <i class="fas fa-info-circle"></i> About
+                    </a></li>
+                    <li><a href="{{ url_for('main.contact') }}" class="nav-link {% if request.path == url_for('main.contact') %}active{% endif %}">
+                        <i class="fas fa-envelope"></i> Contact
+                    </a></li>
                 </ul>
             </nav>
         </header>

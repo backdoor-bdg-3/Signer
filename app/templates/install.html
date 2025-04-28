@@ -26,8 +26,14 @@
                 <p>Tap the button below to install this app directly on your iOS device.</p>
                 
                 <a href="{{ ota_url }}" class="btn btn-primary install-btn">
-                    <i class="fas fa-download"></i> Install Now
+                    <i class="fas fa-rocket"></i> Install Now
                 </a>
+                
+                <div class="install-buttons-secondary">
+                    <a href="{{ url_for('main.contact') }}" class="btn btn-secondary">
+                        <i class="fas fa-headset"></i> Get Help
+                    </a>
+                </div>
                 
                 <div class="install-note">
                     <p><i class="fas fa-info-circle"></i> <strong>Note:</strong> You may need to trust the developer in Settings > General > Device Management after installation.</p>
@@ -67,7 +73,7 @@
                     <div class="step-number">3</div>
                     <div class="step-content">
                         <h4>Alternative Installation</h4>
-                        <p>If direct installation doesn't work, you can <a href="{{ url_for('main.download_file', filename=filename) }}">download the IPA file</a> and install it using Sideloadly, AltStore, or similar tools.</p>
+                        <p>If direct installation doesn't work, contact support for assistance with installation using Sideloadly, AltStore, or similar tools.</p>
                     </div>
                 </div>
             </div>
