@@ -36,7 +36,6 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.9.0
-      - fromGroup: backdoor-web-signer
       - key: MAX_CONCURRENT_TASKS
         value: 2
       - key: LFS_REPO_PATH
