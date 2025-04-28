@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block title %}About - Backdoor Web Signer{% endblock %}
+
+{% block content %}
+<section class="about-section">
+    <div class="about-header">
+        <h2>About Backdoor Web Signer</h2>
+        <p class="subtitle">The ultimate iOS app signing solution</p>
+    </div>
+    
+    <div class="about-content">
+        <div class="about-image">
+            <img src="{{ url_for('static', filename='img/about-image.png') }}" alt="Backdoor Web Signer">
+        </div>
+        
+        <div class="about-text">
+            <h3>Our Mission</h3>
+            <p>
+                Backdoor Web Signer was created to provide a simple, efficient, and reliable way to sign iOS applications.
+                We understand the challenges developers face when distributing their apps outside the App Store, and we're
+                here to make that process as smooth as possible.
+            </p>
+            
+            <h3>What We Offer</h3>
+            <ul class="feature-list">
+                <li>
+                    <i class="fas fa-check"></i>
+                    <span>Fast and reliable iOS app signing</span>
+                </li>
+                <li>
+                    <i class="fas fa-check"></i>
+                    <span>Support for apps of any size (1MB to 10GB+)</span>
+                </li>
+                <li>
+                    <i class="fas fa-check"></i>
+                    <span>Secure processing with immediate file cleanup</span>
+                </li>
+                <li>
+                    <i class="fas fa-check"></i>
+                    <span>User-friendly interface with step-by-step guidance</span>
+                </li>
+                <li>
+                    <i class="fas fa-check"></i>
+                    <span>No registration required</span>
+                </li>
+            </ul>
+            
+            <h3>Technology</h3>
+            <p>
+                Backdoor Web Signer uses zsign, a powerful iOS app re-signing utility that works directly with
+                your certificates and provisioning profiles. Our web interface makes this technology accessible
+                to everyone, regardless of technical expertise.
+            </p>
+            
+            <h3>Security & Privacy</h3>
+            <p>
+                We take your security seriously. All uploaded files are processed securely and deleted immediately
+                after signing. We never store your certificates, provisioning profiles, or passwords. Your data
+                remains yours alone.
+            </p>
+        </div>
+    </div>
+    
+    <div class="features-section">
+        <h3>Key Features</h3>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-file-signature"></i>
+                </div>
+                <h4>iOS App Signing</h4>
+                <p>Sign iOS apps of any size with your own certificates and provisioning profiles.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-mobile-alt"></i>
+                </div>
+                <h4>OTA Installation</h4>
+                <p>Install signed apps directly on your iOS device using QR codes or direct links.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-image"></i>
+                </div>
+                <h4>App Icon Customization</h4>
+                <p>Replace the app icon with your own custom image during the signing process.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h4>Entitlements Management</h4>
+                <p>Extract, view, and select entitlements from your IPA and provisioning profile for precise control.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-puzzle-piece"></i>
+                </div>
+                <h4>Dylib Injection</h4>
+                <p>Inject dynamic libraries into your apps to extend functionality or modify behavior.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-id-card"></i>
+                </div>
+                <h4>Bundle Customization</h4>
+                <p>Modify bundle ID, name, and version to customize the app identity during signing.</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="tech-stack">
+        <h3>Our Technology Stack</h3>
+        <div class="tech-icons">
+            <div class="tech-icon">
+                <i class="fab fa-python"></i>
+                <span>Python</span>
+            </div>
+            <div class="tech-icon">
+                <i class="fab fa-flask"></i>
+                <span>Flask</span>
+            </div>
+            <div class="tech-icon">
+                <i class="fas fa-code"></i>
+                <span>zsign</span>
+            </div>
+            <div class="tech-icon">
+                <i class="fab fa-html5"></i>
+                <span>HTML5</span>
+            </div>
+            <div class="tech-icon">
+                <i class="fab fa-css3-alt"></i>
+                <span>CSS3</span>
+            </div>
+            <div class="tech-icon">
+                <i class="fab fa-js"></i>
+                <span>JavaScript</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="cta-container">
+        <h3>Ready to sign your iOS app?</h3>
+        <a href="{{ url_for('main.index') }}#signing-form" class="btn btn-primary">Start Signing Now</a>
+    </div>
+</section>
+{% endblock %}

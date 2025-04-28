@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Install App - Backdoor Web Signer{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/qrcode.js/lib/qrcode.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+{% endblock %}
+
+{% block content %}
+<section class="install-section">
+    <div class="install-container">
+        <h2>Install iOS App</h2>
+        <p>Install the signed app directly on your iOS device.</p>
+        
+        <div class="app-info">
+            <h3>{{ filename }}</h3>
+        </div>
+        
+        <div class="install-options">
+            <div class="install-card">
+                <div class="install-icon">
+                    <i class="fas fa-mobile-alt"></i>
+                </div>
+                <h3>Direct Installation</h3>
+                <p>Tap the button below to install this app directly on your iOS device.</p>
+                
+                <a href="{{ ota_url }}" class="btn btn-primary install-btn">
+                    <i class="fas fa-download"></i> Install Now
+                </a>
+                
+                <div class="install-note">
+                    <p><i class="fas fa-info-circle"></i> <strong>Note:</strong> You may need to trust the developer in Settings > General > Device Management after installation.</p>
+                </div>
+            </div>
+            
+            <div class="qr-card">
+                <h3>Install on Another Device</h3>
+                <p>Scan this QR code with another iOS device to install the app.</p>
+                
+                <div id="qrcode" class="qr-code"></div>
+                
+                <p class="qr-caption">Scan with iOS Camera App</p>
+            </div>
+        </div>
+        
+        <div class="installation-help">
+            <h3>Having Trouble?</h3>
+            <div class="help-steps">
+                <div class="help-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4>Make sure you're using Safari</h4>
+                        <p>OTA installation only works in Safari on iOS devices.</p>
+                    </div>
+                </div>
+                
+                <div class="help-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4>Trust the Developer</h4>
+                        <p>After installation, go to Settings > General > Device Management, and trust the developer profile.</p>
+                    </div>
+                </div>
+                
+                <div class="help-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4>Alternative Installation</h4>
+                        <p>If direct installation doesn't work, you can <a href="{{ url_for('main.download_file', filename=filename) }}">download the IPA file</a> and install it using Sideloadly, AltStore, or similar tools.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="back-link">
+            <a href="{{ url_for('main.index') }}">
+                <i class="fas fa-arrow-left"></i> Back to Signer
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Generate QR code for OTA installation
+        const qrcode = new QRCode(document.getElementById('qrcode'), {
+            text: "{{ ota_url }}",
+            width: 200,
+            height: 200,
+            colorDark: "#6200ea",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
+        
+        // Check if we're on iOS
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        
+        if (isIOS) {
+            // Add a pulsing effect to the install button
+            const installBtn = document.querySelector('.install-btn');
+            installBtn.classList.add('pulse-btn');
+            
+            // Auto-redirect on iOS after a short delay
+            setTimeout(function() {
+                window.location.href = "{{ ota_url }}";
+            }, 1500);
+        }
+    });
+</script>
+{% endblock %}

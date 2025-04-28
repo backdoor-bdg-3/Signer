@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}Signing Successful - Backdoor Web Signer{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/qrcode.js/lib/qrcode.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<section class="success-section">
+    <div class="success-container">
+        <div class="success-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <h2>App Signed Successfully!</h2>
+        <p>Your iOS app has been signed and is ready for download or direct installation.</p>
+        
+        <div class="file-info">
+            <h3>App Details</h3>
+            <div class="app-details">
+                {% if app_info.icon_base64 %}
+                <div class="app-icon">
+                    <img src="data:image/png;base64,{{ app_info.icon_base64 }}" alt="App Icon">
+                </div>
+                {% endif %}
+                <div class="app-metadata">
+                    <p class="filename">{{ filename }}</p>
+                    {% if app_info.bundle_name %}
+                    <p><strong>Name:</strong> {{ app_info.bundle_name }}</p>
+                    {% endif %}
+                    {% if app_info.bundle_id %}
+                    <p><strong>Bundle ID:</strong> {{ app_info.bundle_id }}</p>
+                    {% endif %}
+                    {% if app_info.bundle_version %}
+                    <p><strong>Version:</strong> {{ app_info.bundle_version }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="installation-options">
+            <h3>Installation Options</h3>
+            
+            <div class="option-tabs">
+                <div class="tab-buttons">
+                    <button class="tab-btn active" data-tab="direct-install">Direct Install</button>
+                    <button class="tab-btn" data-tab="download">Download IPA</button>
+                    {% if stdout is defined %}
+                    <button class="tab-btn" data-tab="log">Signing Log</button>
+                    {% endif %}
+                </div>
+                
+                <div class="tab-content">
+                    <div class="tab-pane active" id="direct-install">
+                        <div class="ota-install">
+                            <div class="qr-container">
+                                <div id="qrcode"></div>
+                                <p class="qr-caption">Scan with iOS Camera</p>
+                            </div>
+                            
+                            <div class="ota-instructions">
+                                <h4>Install Directly on Your iOS Device</h4>
+                                <p>You can install this app directly on your iOS device in two ways:</p>
+                                
+                                <ol>
+                                    <li>
+                                        <strong>Scan QR Code:</strong> Use your iOS device's camera to scan the QR code, then tap the notification to install.
+                                    </li>
+                                    <li>
+                                        <strong>Direct Link:</strong> Open this page on your iOS device and tap the button below.
+                                    </li>
+                                </ol>
+                                
+                                <a href="{{ ota_url }}" class="btn btn-primary ota-btn">
+                                    <i class="fas fa-mobile-alt"></i> Install on Device
+                                </a>
+                                
+                                <div class="ota-note">
+                                    <p><i class="fas fa-info-circle"></i> <strong>Note:</strong> You may need to trust the developer in Settings > General > Device Management after installation.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-pane" id="download">
+                        <div class="download-container">
+                            <p>Download the signed IPA file to your computer for manual installation or distribution.</p>
+                            
+                            <a href="{{ download_url }}" class="btn btn-primary download-btn">
+                                <i class="fas fa-download"></i> Download Signed App
+                            </a>
+                            
+                            <div class="manual-install-instructions">
+                                <h4>Manual Installation Methods:</h4>
+                                <ul>
+                                    <li><strong>Sideloadly:</strong> Use <a href="https://sideloadly.io/" target="_blank">Sideloadly</a> to install the IPA on your device.</li>
+                                    <li><strong>AltStore:</strong> Install via <a href="https://altstore.io/" target="_blank">AltStore</a> on your device.</li>
+                                    <li><strong>Apple Configurator:</strong> Use Apple Configurator to install the app.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if stdout is defined %}
+                    <div class="tab-pane" id="log">
+                        <div class="signing-log">
+                            <h4>Signing Process Log</h4>
+                            <pre class="log-output">{{ stdout }}</pre>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="additional-actions">
+            <a href="{{ url_for('main.index') }}" class="btn btn-secondary">
+                <i class="fas fa-redo"></i> Sign Another App
+            </a>
+            <a href="{{ url_for('main.advanced') }}" class="btn btn-secondary">
+                <i class="fas fa-cogs"></i> Advanced Signing
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Generate QR code for OTA installation
+        const qrcode = new QRCode(document.getElementById('qrcode'), {
+            text: "{{ ota_url }}",
+            width: 200,
+            height: 200,
+            colorDark: "#6200ea",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
+        
+        // Tab functionality
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        const tabPanes = document.querySelectorAll('.tab-pane');
+        
+        tabButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Remove active class from all buttons and panes
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabPanes.forEach(pane => pane.classList.remove('active'));
+                
+                // Add active class to clicked button and corresponding pane
+                this.classList.add('active');
+                const tabId = this.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+    });
+</script>
+{% endblock %}

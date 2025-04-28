@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Contact - Backdoor Web Signer{% endblock %}
+
+{% block content %}
+<section class="contact-section">
+    <div class="contact-header">
+        <h2>Contact Us</h2>
+        <p class="subtitle">Get in touch with the developer</p>
+    </div>
+    
+    <div class="contact-content">
+        <div class="contact-info">
+            <h3>Connect With Me</h3>
+            <p>
+                Have questions, suggestions, or need assistance with Backdoor Web Signer?
+                I'm here to help! Reach out through any of the following platforms:
+            </p>
+            
+            <div class="contact-cards">
+                <div class="contact-card discord">
+                    <div class="contact-icon">
+                        <i class="fab fa-discord"></i>
+                    </div>
+                    <div class="contact-details">
+                        <h4>Discord</h4>
+                        <p class="contact-value">xbl_bdg</p>
+                        <a href="https://discord.com/users/xbl_bdg" target="_blank" class="contact-link">
+                            Connect on Discord
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="contact-card telegram">
+                    <div class="contact-icon">
+                        <i class="fab fa-telegram"></i>
+                    </div>
+                    <div class="contact-details">
+                        <h4>Telegram</h4>
+                        <p class="contact-value">elchops</p>
+                        <a href="https://t.me/elchops" target="_blank" class="contact-link">
+                            Message on Telegram
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="response-time">
+                <h4><i class="fas fa-clock"></i> Response Time</h4>
+                <p>I typically respond to messages within 24-48 hours.</p>
+            </div>
+        </div>
+        
+        <div class="contact-image">
+            <img src="{{ url_for('static', filename='img/contact-image.png') }}" alt="Contact Us">
+        </div>
+    </div>
+    
+    <div class="faq-section">
+        <h3>Frequently Asked Questions</h3>
+        
+        <div class="faq-container">
+            <div class="faq-item">
+                <div class="faq-question">
+                    <h4>Is this service free to use?</h4>
+                    <span class="faq-toggle"><i class="fas fa-chevron-down"></i></span>
+                </div>
+                <div class="faq-answer">
+                    <p>Yes, Backdoor Web Signer is completely free to use. There are no hidden fees or subscription costs.</p>
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">
+                    <h4>Do you store my certificates or provisioning profiles?</h4>
+                    <span class="faq-toggle"><i class="fas fa-chevron-down"></i></span>
+                </div>
+                <div class="faq-answer">
+                    <p>No, we do not store any of your files. All uploaded files are processed immediately and then deleted from our servers.</p>
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">
+                    <h4>What's the maximum file size I can upload?</h4>
+                    <span class="faq-toggle"><i class="fas fa-chevron-down"></i></span>
+                </div>
+                <div class="faq-answer">
+                    <p>Backdoor Web Signer supports files up to 10GB in size, making it suitable for even the largest iOS applications.</p>
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">
+                    <h4>How long does the signing process take?</h4>
+                    <span class="faq-toggle"><i class="fas fa-chevron-down"></i></span>
+                </div>
+                <div class="faq-answer">
+                    <p>The signing process is very fast, typically taking just a few seconds for small apps and a few minutes for larger apps.</p>
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">
+                    <h4>Can I sign apps for distribution on the App Store?</h4>
+                    <span class="faq-toggle"><i class="fas fa-chevron-down"></i></span>
+                </div>
+                <div class="faq-answer">
+                    <p>No, this service is intended for re-signing apps for personal use or enterprise distribution. For App Store distribution, you should use Apple's official tools.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // FAQ toggle functionality
+        const faqItems = document.querySelectorAll('.faq-item');
+        
+        faqItems.forEach(item => {
+            const question = item.querySelector('.faq-question');
+            const answer = item.querySelector('.faq-answer');
+            const toggle = item.querySelector('.faq-toggle');
+            
+            question.addEventListener('click', function() {
+                // Close all other answers
+                faqItems.forEach(otherItem => {
+                    if (otherItem !== item) {
+                        otherItem.classList.remove('active');
+                        otherItem.querySelector('.faq-answer').style.maxHeight = null;
+                        otherItem.querySelector('.faq-toggle i').className = 'fas fa-chevron-down';
+                    }
+                });
+                
+                // Toggle current answer
+                item.classList.toggle('active');
+                
+                if (item.classList.contains('active')) {
+                    answer.style.maxHeight = answer.scrollHeight + 'px';
+                    toggle.querySelector('i').className = 'fas fa-chevron-up';
+                } else {
+                    answer.style.maxHeight = null;
+                    toggle.querySelector('i').className = 'fas fa-chevron-down';
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

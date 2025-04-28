@@ -1,0 +1,472 @@
+{% extends "base.html" %}
+
+{% block title %}Advanced Signing - Backdoor Web Signer{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-content">
+        <h2>Advanced iOS App Signing</h2>
+        <p>Access all zsign features for complete control over the signing process</p>
+    </div>
+</section>
+
+<section class="advanced-signing-section" id="signing-form">
+    <h2>Advanced Signing Options</h2>
+    <div class="form-container">
+        <form method="POST" action="{{ url_for('main.sign_app_advanced') }}" enctype="multipart/form-data" class="signing-form advanced-form">
+            {{ form.csrf_token }}
+            
+            <div class="form-section">
+                <h3>Required Files</h3>
+                
+                <div class="form-group">
+                    <div class="file-upload">
+                        <label for="{{ form.ipa_file.id }}" class="file-label">
+                            <i class="fas fa-file-archive"></i>
+                            <span class="file-text">Choose IPA File</span>
+                        </label>
+                        {{ form.ipa_file(class="file-input", id=form.ipa_file.id) }}
+                        <div class="file-name" id="ipa-file-name">No file chosen</div>
+                    </div>
+                    {% if form.ipa_file.errors %}
+                        <div class="errors">
+                            {% for error in form.ipa_file.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <div class="file-upload">
+                        <label for="{{ form.p12_file.id }}" class="file-label">
+                            <i class="fas fa-certificate"></i>
+                            <span class="file-text">Choose P12 Certificate</span>
+                        </label>
+                        {{ form.p12_file(class="file-input", id=form.p12_file.id) }}
+                        <div class="file-name" id="p12-file-name">No file chosen</div>
+                    </div>
+                    {% if form.p12_file.errors %}
+                        <div class="errors">
+                            {% for error in form.p12_file.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <div class="file-upload">
+                        <label for="{{ form.provision_file.id }}" class="file-label">
+                            <i class="fas fa-file-signature"></i>
+                            <span class="file-text">Choose Mobile Provision</span>
+                        </label>
+                        {{ form.provision_file(class="file-input", id=form.provision_file.id) }}
+                        <div class="file-name" id="provision-file-name">No file chosen</div>
+                    </div>
+                    {% if form.provision_file.errors %}
+                        <div class="errors">
+                            {% for error in form.provision_file.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.p12_password.id }}">P12 Password</label>
+                    {{ form.p12_password(class="form-control", placeholder="Enter P12 password") }}
+                    {% if form.p12_password.errors %}
+                        <div class="errors">
+                            {% for error in form.p12_password.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h3>App Customization</h3>
+                
+                <div class="form-group">
+                    <label for="{{ form.bundle_id.id }}">Bundle ID</label>
+                    {{ form.bundle_id(class="form-control", placeholder="com.example.app") }}
+                    <div class="field-help">Change the app's bundle identifier</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.bundle_name.id }}">Bundle Name</label>
+                    {{ form.bundle_name(class="form-control", placeholder="My App") }}
+                    <div class="field-help">Change the app's display name</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.bundle_version.id }}">Bundle Version</label>
+                    {{ form.bundle_version(class="form-control", placeholder="1.0.0") }}
+                    <div class="field-help">Change the app's version number</div>
+                </div>
+                
+                <div class="form-group">
+                    <div class="file-upload">
+                        <label for="{{ form.app_icon.id }}" class="file-label">
+                            <i class="fas fa-image"></i>
+                            <span class="file-text">Choose Custom App Icon (Optional)</span>
+                        </label>
+                        {{ form.app_icon(class="file-input", id=form.app_icon.id) }}
+                        <div class="file-name" id="app-icon-name">No file chosen</div>
+                    </div>
+                    <div class="field-help">Replace the app's icon with a custom image (PNG or JPG)</div>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h3>Advanced Options</h3>
+                
+                <div class="form-group">
+                    <label for="{{ form.entitlements.id }}">Custom Entitlements</label>
+                    {{ form.entitlements(class="form-control", rows=6, placeholder="<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\">\n<dict>\n    <!-- Custom entitlements here -->\n</dict>\n</plist>") }}
+                    <div class="field-help">Custom entitlements in XML/Plist format</div>
+                    <button type="button" id="extract-entitlements-btn" class="btn btn-secondary">Extract Entitlements</button>
+                </div>
+                
+                <div id="entitlements-container" class="form-group" style="display: none;">
+                    <h4>Available Entitlements</h4>
+                    <p>Select entitlements to include in your signed app:</p>
+                    <div class="entitlements-list">
+                        <div class="loading-spinner">
+                            <div class="spinner"></div>
+                            <p>Extracting entitlements...</p>
+                        </div>
+                        <div class="entitlements-content"></div>
+                    </div>
+                    <button type="button" id="apply-entitlements-btn" class="btn btn-primary" style="display: none;">Apply Selected Entitlements</button>
+                </div>
+                
+                <div class="form-group">
+                    <div class="file-upload">
+                        <label for="{{ form.dylib_files.id }}" class="file-label">
+                            <i class="fas fa-puzzle-piece"></i>
+                            <span class="file-text">Choose Dylib Files (Optional)</span>
+                        </label>
+                        {{ form.dylib_files(class="file-input", id=form.dylib_files.id, multiple=True) }}
+                        <div class="file-name" id="dylib-files-name">No files chosen</div>
+                    </div>
+                    <div class="field-help">Inject dylib files into the app</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.compression_level.id }}">Compression Level</label>
+                    {{ form.compression_level(class="form-control") }}
+                    <div class="field-help">Higher compression = smaller file size but slower signing</div>
+                </div>
+                
+                <div class="form-group checkbox-group">
+                    <div class="checkbox-container">
+                        {{ form.weak_signature(class="checkbox-input") }}
+                        <label for="{{ form.weak_signature.id }}" class="checkbox-label">{{ form.weak_signature.label.text }}</label>
+                    </div>
+                    <div class="field-help">Use weak signature for compatibility with older iOS versions</div>
+                </div>
+                
+                <div class="form-group checkbox-group">
+                    <div class="checkbox-container">
+                        {{ form.force_signature(class="checkbox-input") }}
+                        <label for="{{ form.force_signature.id }}" class="checkbox-label">{{ form.force_signature.label.text }}</label>
+                    </div>
+                    <div class="field-help">Force signing even if there are errors</div>
+                </div>
+                
+                <div class="form-group checkbox-group">
+                    <div class="checkbox-container">
+                        {{ form.verbose(class="checkbox-input") }}
+                        <label for="{{ form.verbose.id }}" class="checkbox-label">{{ form.verbose.label.text }}</label>
+                    </div>
+                    <div class="field-help">Show detailed output from the signing process</div>
+                </div>
+            </div>
+            
+            <div class="form-group submit-group">
+                {{ form.submit(class="btn btn-primary submit-btn") }}
+                <a href="{{ url_for('main.index') }}" class="btn btn-secondary">Back to Basic Mode</a>
+            </div>
+        </form>
+    </div>
+</section>
+
+<section class="advanced-features">
+    <h2>Advanced Features Explained</h2>
+    
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-id-card"></i>
+            </div>
+            <h3>Bundle Modification</h3>
+            <p>Change the app's bundle ID, name, and version to customize the app identity.</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <h3>Custom Entitlements</h3>
+            <p>Add or modify app entitlements to enable specific iOS features and capabilities.</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-puzzle-piece"></i>
+            </div>
+            <h3>Dylib Injection</h3>
+            <p>Inject dynamic libraries into the app to extend functionality or modify behavior.</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-compress-arrows-alt"></i>
+            </div>
+            <h3>Compression Control</h3>
+            <p>Adjust compression level to balance file size and signing speed based on your needs.</p>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // File input display for single files
+        const fileInputs = {
+            'ipa_file': 'ipa-file-name',
+            'p12_file': 'p12-file-name',
+            'provision_file': 'provision-file-name',
+            'app_icon': 'app-icon-name'
+        };
+        
+        for (const [inputId, displayId] of Object.entries(fileInputs)) {
+            const input = document.getElementById(inputId);
+            const display = document.getElementById(displayId);
+            
+            input.addEventListener('change', function() {
+                if (this.files.length > 0) {
+                    display.textContent = this.files[0].name;
+                    display.classList.add('has-file');
+                } else {
+                    display.textContent = 'No file chosen';
+                    display.classList.remove('has-file');
+                }
+            });
+        }
+        
+        // Multiple file input display for dylib files
+        const dylibInput = document.getElementById('dylib_files');
+        const dylibDisplay = document.getElementById('dylib-files-name');
+        
+        dylibInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                if (this.files.length === 1) {
+                    dylibDisplay.textContent = this.files[0].name;
+                } else {
+                    dylibDisplay.textContent = `${this.files.length} files selected`;
+                }
+                dylibDisplay.classList.add('has-file');
+            } else {
+                dylibDisplay.textContent = 'No files chosen';
+                dylibDisplay.classList.remove('has-file');
+            }
+        });
+        
+        // Close flash messages
+        const closeButtons = document.querySelectorAll('.flash-message .close-btn');
+        closeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                this.parentElement.style.display = 'none';
+            });
+        });
+        
+        // Entitlements extraction
+        const extractEntitlementsBtn = document.getElementById('extract-entitlements-btn');
+        const entitlementsContainer = document.getElementById('entitlements-container');
+        const entitlementsContent = document.querySelector('.entitlements-content');
+        const loadingSpinner = document.querySelector('.loading-spinner');
+        const applyEntitlementsBtn = document.getElementById('apply-entitlements-btn');
+        const entitlementsTextarea = document.getElementById('entitlements');
+        
+        if (extractEntitlementsBtn) {
+            extractEntitlementsBtn.addEventListener('click', function() {
+                const ipaFile = document.getElementById('ipa_file').files[0];
+                const provisionFile = document.getElementById('provision_file').files[0];
+                
+                if (!ipaFile || !provisionFile) {
+                    alert('Please upload both IPA and provisioning profile files first.');
+                    return;
+                }
+                
+                // Show the entitlements container and loading spinner
+                entitlementsContainer.style.display = 'block';
+                loadingSpinner.style.display = 'block';
+                entitlementsContent.innerHTML = '';
+                applyEntitlementsBtn.style.display = 'none';
+                
+                // Create form data
+                const formData = new FormData();
+                formData.append('ipa_file', ipaFile);
+                formData.append('provision_file', provisionFile);
+                
+                // Send request to extract entitlements
+                fetch('/extract-entitlements', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    loadingSpinner.style.display = 'none';
+                    
+                    if (data.error) {
+                        entitlementsContent.innerHTML = `<div class="error-message">${data.error}</div>`;
+                        return;
+                    }
+                    
+                    // Display entitlements
+                    const allEntitlements = data.all_entitlements;
+                    
+                    if (Object.keys(allEntitlements).length === 0) {
+                        entitlementsContent.innerHTML = '<p>No entitlements found in the IPA or provisioning profile.</p>';
+                        return;
+                    }
+                    
+                    let html = '<div class="entitlements-table">';
+                    html += '<table>';
+                    html += '<thead><tr><th>Select</th><th>Entitlement</th><th>Value</th><th>Source</th></tr></thead>';
+                    html += '<tbody>';
+                    
+                    for (const [key, info] of Object.entries(allEntitlements)) {
+                        const value = typeof info.value === 'object' ? JSON.stringify(info.value) : info.value;
+                        const source = [];
+                        if (info.in_app) source.push('App');
+                        if (info.in_provision) source.push('Provision');
+                        
+                        const isAvailable = info.in_provision;
+                        const checked = info.in_app ? 'checked' : '';
+                        const disabled = !isAvailable ? 'disabled' : '';
+                        
+                        html += `<tr class="${isAvailable ? '' : 'unavailable'}">`; 
+                        html += `<td><input type="checkbox" name="entitlement" value="${key}" ${checked} ${disabled}></td>`;
+                        html += `<td>${key}</td>`;
+                        html += `<td><code>${value}</code></td>`;
+                        html += `<td>${source.join(', ')}</td>`;
+                        html += '</tr>';
+                    }
+                    
+                    html += '</tbody></table></div>';
+                    entitlementsContent.innerHTML = html;
+                    applyEntitlementsBtn.style.display = 'block';
+                })
+                .catch(error => {
+                    loadingSpinner.style.display = 'none';
+                    entitlementsContent.innerHTML = `<div class="error-message">Error: ${error.message}</div>`;
+                });
+            });
+        }
+        
+        // Apply selected entitlements
+        if (applyEntitlementsBtn) {
+            applyEntitlementsBtn.addEventListener('click', function() {
+                const selectedEntitlements = document.querySelectorAll('input[name="entitlement"]:checked');
+                
+                if (selectedEntitlements.length === 0) {
+                    alert('Please select at least one entitlement.');
+                    return;
+                }
+                
+                // Create plist XML
+                let plistXml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+                plistXml += '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n';
+                plistXml += '<plist version="1.0">\n<dict>\n';
+                
+                selectedEntitlements.forEach(checkbox => {
+                    const key = checkbox.value;
+                    const row = checkbox.closest('tr');
+                    const valueCell = row.querySelector('td:nth-child(3) code');
+                    const value = valueCell.textContent;
+                    
+                    // Parse the value (could be boolean, string, array, etc.)
+                    try {
+                        const parsedValue = JSON.parse(value);
+                        
+                        if (typeof parsedValue === 'boolean') {
+                            plistXml += `    <key>${key}</key>\n`;
+                            plistXml += `    <${parsedValue ? 'true' : 'false'}/>\n`;
+                        } else if (typeof parsedValue === 'string') {
+                            plistXml += `    <key>${key}</key>\n`;
+                            plistXml += `    <string>${parsedValue}</string>\n`;
+                        } else if (typeof parsedValue === 'number') {
+                            if (Number.isInteger(parsedValue)) {
+                                plistXml += `    <key>${key}</key>\n`;
+                                plistXml += `    <integer>${parsedValue}</integer>\n`;
+                            } else {
+                                plistXml += `    <key>${key}</key>\n`;
+                                plistXml += `    <real>${parsedValue}</real>\n`;
+                            }
+                        } else if (Array.isArray(parsedValue)) {
+                            plistXml += `    <key>${key}</key>\n`;
+                            plistXml += `    <array>\n`;
+                            parsedValue.forEach(item => {
+                                if (typeof item === 'string') {
+                                    plistXml += `        <string>${item}</string>\n`;
+                                } else if (typeof item === 'boolean') {
+                                    plistXml += `        <${item ? 'true' : 'false'}/>\n`;
+                                } else if (typeof item === 'number') {
+                                    if (Number.isInteger(item)) {
+                                        plistXml += `        <integer>${item}</integer>\n`;
+                                    } else {
+                                        plistXml += `        <real>${item}</real>\n`;
+                                    }
+                                }
+                            });
+                            plistXml += `    </array>\n`;
+                        } else if (typeof parsedValue === 'object') {
+                            // This is a simplified approach - complex nested objects would need recursive handling
+                            plistXml += `    <key>${key}</key>\n`;
+                            plistXml += `    <dict>\n`;
+                            for (const [k, v] of Object.entries(parsedValue)) {
+                                if (typeof v === 'string') {
+                                    plistXml += `        <key>${k}</key>\n`;
+                                    plistXml += `        <string>${v}</string>\n`;
+                                } else if (typeof v === 'boolean') {
+                                    plistXml += `        <key>${k}</key>\n`;
+                                    plistXml += `        <${v ? 'true' : 'false'}/>\n`;
+                                } else if (typeof v === 'number') {
+                                    plistXml += `        <key>${k}</key>\n`;
+                                    if (Number.isInteger(v)) {
+                                        plistXml += `        <integer>${v}</integer>\n`;
+                                    } else {
+                                        plistXml += `        <real>${v}</real>\n`;
+                                    }
+                                }
+                            }
+                            plistXml += `    </dict>\n`;
+                        }
+                    } catch (e) {
+                        // If parsing fails, treat as string
+                        plistXml += `    <key>${key}</key>\n`;
+                        plistXml += `    <string>${value}</string>\n`;
+                    }
+                });
+                
+                plistXml += '</dict>\n</plist>';
+                
+                // Set the entitlements textarea value
+                entitlementsTextarea.value = plistXml;
+                
+                // Hide the entitlements container
+                entitlementsContainer.style.display = 'none';
+                
+                // Show success message
+                alert('Entitlements have been applied to the form.');
+            });
+        }
+    });
+</script>
+{% endblock %}

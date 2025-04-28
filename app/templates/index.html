@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block title %}Backdoor Web Signer - Sign iOS Apps{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-content">
+        <h2>Sign Your iOS Apps</h2>
+        <p>Fast, secure, and reliable iOS app signing service</p>
+        <div class="hero-cta">
+            <a href="#signing-form" class="btn btn-primary pulse-btn">Start Signing</a>
+            <a href="{{ url_for('main.about') }}" class="btn btn-secondary">Learn More</a>
+        </div>
+    </div>
+</section>
+
+<section class="features">
+    <h2>Why Choose Backdoor Web Signer?</h2>
+    <div class="feature-grid">
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-bolt"></i>
+            </div>
+            <h3>Lightning Fast</h3>
+            <p>Sign apps of any size quickly and efficiently</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <h3>Secure</h3>
+            <p>Your files are processed securely and deleted after signing</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-expand-arrows-alt"></i>
+            </div>
+            <h3>No Size Limits</h3>
+            <p>Sign apps from 1MB to 10GB with no restrictions</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-cloud"></i>
+            </div>
+            <h3>Cloud-Based</h3>
+            <p>No need to install anything on your device</p>
+        </div>
+    </div>
+</section>
+
+<section class="signing-section" id="signing-form">
+    <h2>Sign Your iOS App</h2>
+    <div class="form-container">
+        <form method="POST" action="{{ url_for('main.sign_app') }}" enctype="multipart/form-data" class="signing-form">
+            {{ form.csrf_token }}
+            
+            <div class="form-group">
+                <div class="file-upload">
+                    <label for="{{ form.ipa_file.id }}" class="file-label">
+                        <i class="fas fa-file-archive"></i>
+                        <span class="file-text">Choose IPA File</span>
+                    </label>
+                    {{ form.ipa_file(class="file-input", id=form.ipa_file.id) }}
+                    <div class="file-name" id="ipa-file-name">No file chosen</div>
+                </div>
+                {% if form.ipa_file.errors %}
+                    <div class="errors">
+                        {% for error in form.ipa_file.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <div class="file-upload">
+                    <label for="{{ form.p12_file.id }}" class="file-label">
+                        <i class="fas fa-certificate"></i>
+                        <span class="file-text">Choose P12 Certificate</span>
+                    </label>
+                    {{ form.p12_file(class="file-input", id=form.p12_file.id) }}
+                    <div class="file-name" id="p12-file-name">No file chosen</div>
+                </div>
+                {% if form.p12_file.errors %}
+                    <div class="errors">
+                        {% for error in form.p12_file.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <div class="file-upload">
+                    <label for="{{ form.provision_file.id }}" class="file-label">
+                        <i class="fas fa-file-signature"></i>
+                        <span class="file-text">Choose Mobile Provision</span>
+                    </label>
+                    {{ form.provision_file(class="file-input", id=form.provision_file.id) }}
+                    <div class="file-name" id="provision-file-name">No file chosen</div>
+                </div>
+                {% if form.provision_file.errors %}
+                    <div class="errors">
+                        {% for error in form.provision_file.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.p12_password.id }}">P12 Password</label>
+                {{ form.p12_password(class="form-control", placeholder="Enter P12 password") }}
+                {% if form.p12_password.errors %}
+                    <div class="errors">
+                        {% for error in form.p12_password.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="form-section">
+                <h3>Optional Customization</h3>
+                
+                <div class="form-group">
+                    <label for="{{ form.bundle_id.id }}">{{ form.bundle_id.label.text }}</label>
+                    {{ form.bundle_id(class="form-control", placeholder="com.example.app") }}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.bundle_name.id }}">{{ form.bundle_name.label.text }}</label>
+                    {{ form.bundle_name(class="form-control", placeholder="My App") }}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.bundle_version.id }}">{{ form.bundle_version.label.text }}</label>
+                    {{ form.bundle_version(class="form-control", placeholder="1.0.0") }}
+                </div>
+                
+                <div class="form-group">
+                    <div class="file-upload">
+                        <label for="{{ form.app_icon.id }}" class="file-label">
+                            <i class="fas fa-image"></i>
+                            <span class="file-text">{{ form.app_icon.label.text }}</span>
+                        </label>
+                        {{ form.app_icon(class="file-input", id=form.app_icon.id) }}
+                        <div class="file-name" id="app-icon-name">No file chosen</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                {{ form.submit(class="btn btn-primary submit-btn") }}
+            </div>
+            
+            <div class="advanced-link">
+                <p>Need more options? Try our <a href="{{ url_for('main.advanced') }}">Advanced Signing</a> with full zsign capabilities.</p>
+            </div>
+        </form>
+    </div>
+</section>
+
+<section class="how-it-works">
+    <h2>How It Works</h2>
+    <div class="steps">
+        <div class="step">
+            <div class="step-number">1</div>
+            <div class="step-content">
+                <h3>Upload Files</h3>
+                <p>Upload your IPA file, P12 certificate, and mobile provision profile</p>
+            </div>
+        </div>
+        <div class="step">
+            <div class="step-number">2</div>
+            <div class="step-content">
+                <h3>Enter Password</h3>
+                <p>Provide your P12 certificate password</p>
+            </div>
+        </div>
+        <div class="step">
+            <div class="step-number">3</div>
+            <div class="step-content">
+                <h3>Sign App</h3>
+                <p>Our system will sign your app using the provided credentials</p>
+            </div>
+        </div>
+        <div class="step">
+            <div class="step-number">4</div>
+            <div class="step-content">
+                <h3>Install</h3>
+                <p>Install directly on your iOS device or download the signed IPA file</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // File input display
+        const fileInputs = {
+            'ipa_file': 'ipa-file-name',
+            'p12_file': 'p12-file-name',
+            'provision_file': 'provision-file-name',
+            'app_icon': 'app-icon-name'
+        };
+        
+        for (const [inputId, displayId] of Object.entries(fileInputs)) {
+            const input = document.getElementById(inputId);
+            const display = document.getElementById(displayId);
+            
+            input.addEventListener('change', function() {
+                if (this.files.length > 0) {
+                    display.textContent = this.files[0].name;
+                    display.classList.add('has-file');
+                } else {
+                    display.textContent = 'No file chosen';
+                    display.classList.remove('has-file');
+                }
+            });
+        }
+        
+        // Close flash messages
+        const closeButtons = document.querySelectorAll('.flash-message .close-btn');
+        closeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                this.parentElement.style.display = 'none';
+            });
+        });
+    });
+</script>
+{% endblock %}

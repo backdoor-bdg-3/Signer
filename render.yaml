@@ -1,0 +1,46 @@
+services:
+  - type: web
+    name: backdoor-web-signer
+    env: python
+    buildCommand: |
+      apt-get update && apt-get install -y clang cmake libssl-dev libzip-dev libminizip-dev
+      chmod +x install_zsign.sh && ./install_zsign.sh
+      pip install -r requirements.txt
+    startCommand: gunicorn -c gunicorn_config.py app:app
+    plan: free
+    autoDeploy: false
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.0
+      - key: SECRET_KEY
+        generateValue: true
+      - key: MAX_WORKERS
+        value: 2
+      - key: TIMEOUT
+        value: 600
+    disk:
+      name: uploads
+      mountPath: /app/app/static/uploads
+      sizeGB: 10
+
+  - type: web
+    name: backdoor-web-signer-worker
+    env: python
+    buildCommand: |
+      apt-get update && apt-get install -y clang cmake libssl-dev libzip-dev libminizip-dev
+      chmod +x install_zsign.sh && ./install_zsign.sh
+      pip install -r requirements.txt
+    startCommand: python worker.py
+    plan: free
+    autoDeploy: false
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.0
+      - key: SECRET_KEY
+        sync: backdoor-web-signer
+      - key: MAX_CONCURRENT_TASKS
+        value: 2
+    disk:
+      name: signed
+      mountPath: /app/app/static/signed
+      sizeGB: 10
