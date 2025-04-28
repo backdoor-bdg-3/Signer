@@ -34,14 +34,8 @@
     
     .entitlements-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
         gap: var(--spacing-lg);
-    }
-    
-    @media (max-width: 768px) {
-        .entitlements-grid {
-            grid-template-columns: 1fr;
-        }
     }
     
     .entitlements-card {
@@ -50,6 +44,7 @@
         padding: var(--spacing-md);
         position: relative;
         overflow: hidden;
+        margin-bottom: var(--spacing-md);
     }
     
     .entitlements-card h3 {
@@ -62,133 +57,6 @@
     
     .entitlements-card h3 i {
         font-size: 1.2rem;
-    }
-    
-    .entitlements-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: var(--spacing-md);
-    }
-    
-    .entitlements-table th,
-    .entitlements-table td {
-        padding: var(--spacing-sm);
-        text-align: left;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    
-    .entitlements-table th {
-        color: var(--text-primary);
-        font-weight: 600;
-        background-color: rgba(0, 0, 0, 0.2);
-    }
-    
-    .entitlements-table tr:hover {
-        background-color: rgba(255, 255, 255, 0.05);
-    }
-    
-    .entitlements-table .key-column {
-        width: 60%;
-    }
-    
-    .entitlements-table .value-column {
-        width: 30%;
-    }
-    
-    .entitlements-table .select-column {
-        width: 10%;
-        text-align: center;
-    }
-    
-    .entitlements-table .checkbox-wrapper {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-    
-    .entitlements-table .custom-checkbox {
-        appearance: none;
-        -webkit-appearance: none;
-        width: 20px;
-        height: 20px;
-        background-color: var(--dark-surface);
-        border: 2px solid var(--primary-color);
-        border-radius: var(--border-radius-sm);
-        cursor: pointer;
-        position: relative;
-        transition: var(--transition-fast);
-    }
-    
-    .entitlements-table .custom-checkbox:checked {
-        background-color: var(--primary-color);
-    }
-    
-    .entitlements-table .custom-checkbox:checked::after {
-        content: '✓';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        color: white;
-        font-size: 12px;
-    }
-    
-    .entitlements-table .unavailable {
-        opacity: 0.6;
-    }
-    
-    .entitlements-table .unavailable .custom-checkbox {
-        border-color: var(--text-secondary);
-    }
-    
-    .entitlements-value {
-        font-family: monospace;
-        background-color: rgba(0, 0, 0, 0.2);
-        padding: 2px 4px;
-        border-radius: 3px;
-        word-break: break-all;
-    }
-    
-    .entitlements-warning {
-        background-color: rgba(255, 171, 0, 0.1);
-        border-left: 3px solid var(--warning-color);
-        padding: var(--spacing-md);
-        margin-top: var(--spacing-lg);
-        border-radius: var(--border-radius-sm);
-    }
-    
-    .entitlements-warning h4 {
-        color: var(--warning-color);
-        margin-bottom: var(--spacing-sm);
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-sm);
-    }
-    
-    .entitlements-actions {
-        display: flex;
-        justify-content: center;
-        gap: var(--spacing-md);
-        margin-top: var(--spacing-lg);
-    }
-    
-    .btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0.5rem 1rem;
-        font-size: 0.9rem;
-        font-weight: 500;
-        border-radius: var(--border-radius-md);
-        cursor: pointer;
-        transition: var(--transition-normal);
-        text-decoration: none;
-        border: none;
-        outline: none;
-        position: relative;
-        overflow: hidden;
-        gap: 0.5rem;
-        min-width: 120px;
     }
     
     .loading-spinner {
@@ -236,6 +104,143 @@
         pointer-events: none;
     }
     
+    .entitlements-actions {
+        display: flex;
+        justify-content: center;
+        gap: var(--spacing-md);
+        margin-top: var(--spacing-lg);
+    }
+    
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        border-radius: var(--border-radius-md);
+        cursor: pointer;
+        transition: var(--transition-normal);
+        text-decoration: none;
+        border: none;
+        outline: none;
+        position: relative;
+        overflow: hidden;
+        gap: 0.5rem;
+        min-width: 120px;
+    }
+    
+    .entitlements-category {
+        margin-bottom: var(--spacing-md);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding-bottom: var(--spacing-sm);
+    }
+    
+    .entitlements-category h4 {
+        color: var(--primary-light);
+        margin-bottom: var(--spacing-sm);
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+    }
+    
+    .entitlement-item {
+        display: flex;
+        margin-bottom: var(--spacing-sm);
+        padding: var(--spacing-sm);
+        background-color: rgba(0, 0, 0, 0.2);
+        border-radius: var(--border-radius-sm);
+        align-items: center;
+    }
+    
+    .entitlement-item:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+    
+    .entitlement-checkbox {
+        margin-right: var(--spacing-sm);
+    }
+    
+    .entitlement-info {
+        flex-grow: 1;
+    }
+    
+    .entitlement-name {
+        font-weight: 600;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+    }
+    
+    .entitlement-name .app-badge {
+        background-color: var(--primary-color);
+        color: white;
+        font-size: 0.7rem;
+        padding: 2px 6px;
+        border-radius: 10px;
+        margin-left: var(--spacing-sm);
+    }
+    
+    .entitlement-name .provision-badge {
+        background-color: var(--secondary-color);
+        color: white;
+        font-size: 0.7rem;
+        padding: 2px 6px;
+        border-radius: 10px;
+        margin-left: var(--spacing-sm);
+    }
+    
+    .entitlement-description {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        margin-top: 4px;
+    }
+    
+    .entitlement-value {
+        font-family: monospace;
+        background-color: rgba(0, 0, 0, 0.3);
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        margin-top: 4px;
+        word-break: break-all;
+        color: var(--text-tertiary);
+    }
+    
+    .entitlements-summary {
+        background-color: var(--dark-surface-3);
+        border-radius: var(--border-radius-md);
+        padding: var(--spacing-md);
+        margin-top: var(--spacing-md);
+    }
+    
+    .entitlements-summary h4 {
+        color: var(--primary-light);
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    .entitlements-summary p {
+        color: var(--text-secondary);
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    .entitlements-warning {
+        background-color: rgba(255, 171, 0, 0.1);
+        border-left: 3px solid var(--warning-color);
+        padding: var(--spacing-md);
+        margin-top: var(--spacing-lg);
+        border-radius: var(--border-radius-sm);
+    }
+    
+    .entitlements-warning h4 {
+        color: var(--warning-color);
+        margin-bottom: var(--spacing-sm);
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+    }
+    
     .provision-section {
         margin-bottom: var(--spacing-md);
     }
@@ -248,9 +253,42 @@
         gap: var(--spacing-sm);
     }
     
-    .udids-container {
-        background-color: rgba(0, 0, 0, 0.2);
-        border-radius: var(--border-radius-sm);
+    .info-icon {
+        color: var(--text-tertiary);
+        font-size: 0.9rem;
+        cursor: help;
+        margin-left: 4px;
+    }
+    
+    .tooltip {
+        position: relative;
+        display: inline-block;
+    }
+    
+    .tooltip .tooltip-text {
+        visibility: hidden;
+        width: 200px;
+        background-color: var(--dark-surface);
+        color: var(--text-primary);
+        text-align: center;
+        border-radius: 6px;
+        padding: 8px;
+        position: absolute;
+        z-index: 1;
+        bottom: 125%;
+        left: 50%;
+        transform: translateX(-50%);
+        opacity: 0;
+        transition: opacity 0.3s;
+        font-size: 0.8rem;
+        font-weight: normal;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        pointer-events: none;
+    }
+    
+    .tooltip:hover .tooltip-text {
+        visibility: visible;
+        opacity: 1;
     }
 </style>
 {% endblock %}
@@ -259,7 +297,7 @@
 <section class="entitlements-page">
     <div class="entitlements-header">
         <h2>App Entitlements Manager</h2>
-        <p>Review and customize the entitlements for your iOS application. Select which entitlements to include in your signed app.</p>
+        <p>Review and customize the entitlements for your iOS application. Entitlements determine what system resources and capabilities your app can use.</p>
     </div>
     
     <div class="entitlements-container">
@@ -308,30 +346,24 @@
             <div id="provision-info-content"></div>
         </div>
         
-        <div id="entitlements-grid" class="entitlements-grid" style="display: none;">
+        <div id="entitlements-results" style="display: none;">
             <div class="entitlements-card">
                 <div class="glow-effect"></div>
-                <h3><i class="fas fa-mobile-alt"></i> App Entitlements</h3>
-                <div id="app-entitlements-table"></div>
-            </div>
-            
-            <div class="entitlements-card">
-                <div class="glow-effect"></div>
-                <h3><i class="fas fa-file-signature"></i> Provision Profile Entitlements</h3>
-                <div id="provision-entitlements-table"></div>
-            </div>
-        </div>
-        
-        <div id="entitlements-selection" style="display: none;">
-            <div class="entitlements-card">
-                <div class="glow-effect"></div>
-                <h3><i class="fas fa-check-square"></i> Selected Entitlements</h3>
-                <div id="selected-entitlements-table"></div>
+                <h3><i class="fas fa-puzzle-piece"></i> App Entitlements</h3>
+                <p class="mb-3">Select the entitlements you want to include in your signed app. Entitlements marked with <span class="app-badge">App</span> are requested by your app, while those with <span class="provision-badge">Provision</span> are available in your provisioning profile.</p>
+                
+                <div id="entitlements-categories-container"></div>
                 
                 <div class="entitlements-warning">
                     <h4><i class="fas fa-exclamation-triangle"></i> Important Note</h4>
                     <p>It's recommended to only include entitlements that your app actually requires. Including unnecessary entitlements may not affect functionality but it's always safer to only use the specific entitlements your app needs.</p>
                 </div>
+            </div>
+            
+            <div class="entitlements-card">
+                <div class="glow-effect"></div>
+                <h3><i class="fas fa-check-square"></i> Selected Entitlements Summary</h3>
+                <div id="selected-entitlements-summary"></div>
             </div>
         </div>
     </div>
@@ -353,15 +385,140 @@
         const entitlementsUploadForm = document.getElementById('entitlements-upload-form');
         const loadingContainer = document.getElementById('loading-container');
         const entitlementsContent = document.getElementById('entitlements-content');
-        const entitlementsGrid = document.getElementById('entitlements-grid');
-        const entitlementsSelection = document.getElementById('entitlements-selection');
+        const entitlementsResults = document.getElementById('entitlements-results');
         const entitlementsActions = document.getElementById('entitlements-actions');
-        const appEntitlementsTable = document.getElementById('app-entitlements-table');
-        const provisionEntitlementsTable = document.getElementById('provision-entitlements-table');
-        const selectedEntitlementsTable = document.getElementById('selected-entitlements-table');
+        const categoriesContainer = document.getElementById('entitlements-categories-container');
+        const selectedSummary = document.getElementById('selected-entitlements-summary');
         const applyEntitlementsBtn = document.getElementById('apply-entitlements-btn');
         const provisionInfoSection = document.getElementById('provision-info');
         const provisionInfoContent = document.getElementById('provision-info-content');
+        
+        // Entitlement descriptions
+        const entitlementDescriptions = {
+            // App capability entitlements
+            'com.apple.developer.associated-domains': 'Allows your app to securely connect with associated websites and handle universal links.',
+            'com.apple.developer.authentication-services.autofill-credential-provider': 'Enables your app to provide login credentials for AutoFill in Safari and apps.',
+            'com.apple.developer.ClassKit-environment': 'Allows educational apps to share student progress with teachers through the Schoolwork app.',
+            'com.apple.developer.fileprovider.testing-mode': 'Enables testing mode for file provider extensions.',
+            'com.apple.developer.game-center': 'Integrates your app with Game Center for leaderboards, achievements, and multiplayer features.',
+            'com.apple.developer.homekit': 'Enables communication with HomeKit-compatible smart home devices.',
+            'com.apple.developer.icloud-container-identifiers': 'Defines specific containers for iCloud storage.',
+            'com.apple.developer.icloud-services': 'Enables iCloud capabilities like CloudKit and iCloud Drive.',
+            'com.apple.developer.networking.wifi-info': 'Allows access to the device's Wi-Fi network information.',
+            'com.apple.developer.healthkit': 'Enables access to HealthKit data with user permission.',
+            'com.apple.developer.payment-pass-provisioning': 'Allows provisioning of payment passes.',
+            'com.apple.developer.in-app-payments': 'Enables Apple Pay for in-app purchases.',
+            'com.apple.developer.networking.HotspotConfiguration': 'Allows configuration of Wi-Fi hotspots.',
+            'com.apple.developer.networking.multipath': 'Enables the use of multiple network paths simultaneously.',
+            'com.apple.developer.networking.networkextension': 'Enables VPN, content filtering, and DNS proxy capabilities.',
+            'com.apple.developer.nfc.readersession.formats': 'Allows the app to read NFC tags.',
+            'aps-environment': 'Required for Apple Push Notification service.',
+            'com.apple.developer.push-to-talk': 'Enables push-to-talk communication features.',
+            'application-identifier': 'Unique identifier for your app in the Apple ecosystem.',
+            'com.apple.developer.team-identifier': 'Your Apple Developer team identifier.',
+            'com.apple.security.application-groups': 'Allows data sharing between apps from the same developer.',
+            'keychain-access-groups': 'Defines which keychain access groups your app can access.',
+            
+            // General
+            'get-task-allow': 'Enables debugging capabilities (usually false for distribution builds).',
+            'com.apple.developer.default-data-protection': 'Sets default data protection level for app data.',
+            'inter-app-audio': 'Enables Inter-App Audio (deprecated in favor of Audio Units).',
+            
+            // New frameworks
+            'com.apple.developer.usernotifications.communication': 'Enables communication notifications features.',
+            'com.apple.developer.usernotifications.time-sensitive': 'Allows time-sensitive notifications.',
+            'com.apple.developer.group-session': 'Enables SharePlay and group activities.',
+            'com.apple.developer.applesignin': 'Enables Sign in with Apple functionality.',
+            'com.apple.developer.family-controls': 'Enables family controls and screen time features.',
+            'com.apple.developer.user-fonts': 'Allows installing custom fonts.',
+            
+            // Advanced capabilities
+            'com.apple.developer.healthkit.background-delivery': 'Enables background delivery of HealthKit data.',
+            'com.apple.developer.networking.vpn.api': 'Allows creating custom VPN solutions.',
+            'com.apple.developer.siri': 'Integrates your app with Siri.',
+            'com.apple.developer.coremedia.hls.low-latency': 'Enables low-latency streaming.',
+            'com.apple.developer.devicecheck.appattest-environment': 'Enables App Attest to verify the authenticity of your app.',
+            'com.apple.developer.maps': 'Enables advanced Apple Maps features.'
+        };
+        
+        // Entitlement categories
+        const entitlementCategories = {
+            'Networking': [
+                'com.apple.developer.networking.wifi-info',
+                'com.apple.developer.networking.HotspotConfiguration',
+                'com.apple.developer.networking.multipath',
+                'com.apple.developer.networking.networkextension',
+                'com.apple.developer.networking.vpn.api',
+                'com.apple.developer.networking.slicing.appcategory',
+                'com.apple.developer.networking.slicing.trafficcategory'
+            ],
+            'App Services': [
+                'com.apple.developer.associated-domains',
+                'com.apple.developer.associated-domains.mdm-managed',
+                'aps-environment',
+                'com.apple.developer.usernotifications.communication',
+                'com.apple.developer.usernotifications.time-sensitive',
+                'com.apple.developer.game-center',
+                'com.apple.developer.siri',
+                'com.apple.developer.applesignin'
+            ],
+            'Apple Pay and Wallet': [
+                'com.apple.developer.in-app-payments',
+                'com.apple.developer.payment-pass-provisioning',
+                'com.apple.developer.pay-later-merchandising'
+            ],
+            'iCloud': [
+                'com.apple.developer.icloud-container-identifiers',
+                'com.apple.developer.icloud-container-development-container-identifiers',
+                'com.apple.developer.icloud-services',
+                'com.apple.developer.ubiquity-container-identifiers',
+                'com.apple.developer.ubiquity-kvstore-identifier'
+            ],
+            'Health and Fitness': [
+                'com.apple.developer.healthkit',
+                'com.apple.developer.healthkit.access',
+                'com.apple.developer.healthkit.background-delivery',
+                'com.apple.developer.healthkit.recalibrate-estimates'
+            ],
+            'Hardware and Peripherals': [
+                'com.apple.developer.nfc.readersession.formats',
+                'com.apple.developer.matter.allow-setup-payload'
+            ],
+            'Media and Apple Music': [
+                'inter-app-audio',
+                'com.apple.developer.coremedia.hls.low-latency',
+                'com.apple.developer.media-device-discovery-extension',
+                'com.apple.developer.calling-app',
+                'com.apple.developer.push-to-talk'
+            ],
+            'App Capabilities': [
+                'com.apple.developer.ClassKit-environment',
+                'com.apple.developer.fileprovider.testing-mode',
+                'com.apple.developer.user-fonts',
+                'com.apple.developer.homekit',
+                'com.apple.developer.accessibility.merchant-api-control',
+                'com.apple.developer.authentication-services.autofill-credential-provider',
+                'com.apple.developer.group-session',
+                'com.apple.developer.shared-with-you.collaboration',
+                'com.apple.developer.family-controls',
+                'com.apple.developer.journal.allow'
+            ],
+            'App Groups and Data Sharing': [
+                'com.apple.security.application-groups',
+                'keychain-access-groups'
+            ],
+            'Security and Authentication': [
+                'get-task-allow',
+                'com.apple.developer.default-data-protection',
+                'com.apple.developer.devicecheck.appattest-environment',
+                'com.apple.developer.proximity-reader.identity.display',
+                'com.apple.developer.managed-app-distribution.install-ui'
+            ],
+            'Identifiers': [
+                'application-identifier',
+                'com.apple.developer.team-identifier'
+            ]
+        };
         
         // File input display
         const fileInputs = {
@@ -424,9 +581,9 @@
                     }
                     
                     // Display entitlements
-                    const allEntitlements = data.all_entitlements;
-                    const appEntitlements = data.app_entitlements;
-                    const provisionEntitlements = data.provision_entitlements;
+                    const allEntitlements = data.all_entitlements || {};
+                    const appEntitlements = data.app_entitlements || {};
+                    const provisionEntitlements = data.provision_entitlements || {};
                     const provisionInfo = data.provision_info || {};
                     
                     if (Object.keys(allEntitlements).length === 0) {
@@ -435,9 +592,8 @@
                         return;
                     }
                     
-                    // Show entitlements grid
-                    entitlementsGrid.style.display = 'grid';
-                    entitlementsSelection.style.display = 'block';
+                    // Show entitlements results
+                    entitlementsResults.style.display = 'block';
                     entitlementsActions.style.display = 'flex';
                     
                     // Display provision info if available
@@ -446,20 +602,11 @@
                         provisionInfoContent.innerHTML = createProvisionInfoTable(provisionInfo);
                     }
                     
-                    // Populate app entitlements table
-                    appEntitlementsTable.innerHTML = createEntitlementsTable(appEntitlements, 'app');
+                    // Organize entitlements by category and render them
+                    renderEntitlementsByCategory(allEntitlements, appEntitlements, provisionEntitlements);
                     
-                    // Populate provision entitlements table
-                    provisionEntitlementsTable.innerHTML = createEntitlementsTable(provisionEntitlements, 'provision');
-                    
-                    // Populate selected entitlements table
-                    updateSelectedEntitlements();
-                    
-                    // Add event listeners to checkboxes
-                    const checkboxes = document.querySelectorAll('.entitlement-checkbox');
-                    checkboxes.forEach(checkbox => {
-                        checkbox.addEventListener('change', updateSelectedEntitlements);
-                    });
+                    // Update summary of selected entitlements
+                    updateEntitlementsSummary();
                 })
                 .catch(error => {
                     loadingContainer.style.display = 'none';
@@ -477,13 +624,8 @@
                 
                 checkboxes.forEach(checkbox => {
                     const key = checkbox.dataset.key;
-                    const type = checkbox.dataset.type;
-                    const valueElement = document.querySelector(`#${type}-value-${key.replace(/\./g, '-')}`);
-                    
-                    if (valueElement) {
-                        const value = JSON.parse(valueElement.dataset.value);
-                        selectedEntitlements[key] = value;
-                    }
+                    const value = JSON.parse(checkbox.dataset.value);
+                    selectedEntitlements[key] = value;
                 });
                 
                 // Create plist XML from selected entitlements
@@ -497,31 +639,277 @@
             });
         }
         
-        // Helper function to create entitlements table
-        function createEntitlementsTable(entitlements, type) {
-            if (Object.keys(entitlements).length === 0) {
-                return '<p class="text-center">No entitlements found.</p>';
+        // Helper function to create provision info table
+        function createProvisionInfoTable(provisionInfo) {
+            let html = '<div class="provision-details">';
+            
+            if (provisionInfo.profile_name) {
+                html += `<p><strong>Profile Name:</strong> ${provisionInfo.profile_name}</p>`;
             }
             
-            let html = `
-                <table class="entitlements-table">
-                    <thead>
-                        <tr>
-                            <th class="key-column">Entitlement</th>
-                            <th class="value-column">Value</th>
-                            <th class="select-column">Select</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+            if (provisionInfo.team_name) {
+                html += `<p><strong>Team Name:</strong> ${provisionInfo.team_name}</p>`;
+            }
+            
+            if (provisionInfo.creation_date) {
+                const date = new Date(provisionInfo.creation_date);
+                html += `<p><strong>Creation Date:</strong> ${date.toLocaleDateString()}</p>`;
+            }
+            
+            if (provisionInfo.udids && provisionInfo.udids.length > 0) {
+                html += `<p><strong>Provisioned Devices:</strong> ${provisionInfo.udids.length} device(s)</p>`;
+                html += '<div class="udids-list" style="max-height: 150px; overflow-y: auto; margin-top: 8px;">';
+                html += '<ul style="padding-left: 20px; margin: 0;">';
+                
+                provisionInfo.udids.forEach(udid => {
+                    html += `<li style="margin-bottom: 4px; font-family: monospace; font-size: 0.8rem;">${udid}</li>`;
+                });
+                
+                html += '</ul>';
+                html += '</div>';
+            }
+            
+            html += '</div>';
+            return html;
+        }
+        
+        // Render entitlements organized by category
+        function renderEntitlementsByCategory(allEntitlements, appEntitlements, provisionEntitlements) {
+            categoriesContainer.innerHTML = '';
+            
+            // Get all unique entitlement keys
+            const allKeys = Object.keys(allEntitlements);
+            
+            // Get categories with entitlements
+            const categoriesWithEntitlements = {};
+            
+            // First place entitlements into their categories
+            allKeys.forEach(key => {
+                let found = false;
+                
+                // Check each category
+                for (const [category, entitlements] of Object.entries(entitlementCategories)) {
+                    if (entitlements.includes(key)) {
+                        if (!categoriesWithEntitlements[category]) {
+                            categoriesWithEntitlements[category] = [];
+                        }
+                        categoriesWithEntitlements[category].push(key);
+                        found = true;
+                        break;
+                    }
+                }
+                
+                // If not found in any category, add to Other
+                if (!found) {
+                    if (!categoriesWithEntitlements['Other']) {
+                        categoriesWithEntitlements['Other'] = [];
+                    }
+                    categoriesWithEntitlements['Other'].push(key);
+                }
+            });
+            
+            // Render each category
+            for (const [category, entitlementKeys] of Object.entries(categoriesWithEntitlements)) {
+                if (entitlementKeys.length === 0) continue;
+                
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'entitlements-category';
+                
+                // Category header
+                let categoryIcon = '';
+                switch (category) {
+                    case 'Networking': categoryIcon = 'fas fa-network-wired'; break;
+                    case 'App Services': categoryIcon = 'fas fa-cogs'; break;
+                    case 'Apple Pay and Wallet': categoryIcon = 'fab fa-apple-pay'; break;
+                    case 'iCloud': categoryIcon = 'fas fa-cloud'; break;
+                    case 'Health and Fitness': categoryIcon = 'fas fa-heartbeat'; break;
+                    case 'Hardware and Peripherals': categoryIcon = 'fas fa-microchip'; break;
+                    case 'Media and Apple Music': categoryIcon = 'fas fa-music'; break;
+                    case 'App Capabilities': categoryIcon = 'fas fa-puzzle-piece'; break;
+                    case 'App Groups and Data Sharing': categoryIcon = 'fas fa-share-alt'; break;
+                    case 'Security and Authentication': categoryIcon = 'fas fa-shield-alt'; break;
+                    case 'Identifiers': categoryIcon = 'fas fa-id-badge'; break;
+                    default: categoryIcon = 'fas fa-cubes';
+                }
+                
+                categoryDiv.innerHTML = `<h4><i class="${categoryIcon}"></i> ${category}</h4>`;
+                
+                // Sort entitlements alphabetically within category
+                entitlementKeys.sort();
+                
+                // For each entitlement in this category
+                entitlementKeys.forEach(key => {
+                    const value = allEntitlements[key];
+                    const inApp = key in appEntitlements;
+                    const inProvision = key in provisionEntitlements;
+                    
+                    // Create entitlement item element
+                    const entitlementEl = createEntitlementElement(key, value, inApp, inProvision);
+                    categoryDiv.appendChild(entitlementEl);
+                });
+                
+                categoriesContainer.appendChild(categoryDiv);
+            }
+            
+            // Add event listeners to checkboxes
+            const checkboxes = document.querySelectorAll('.entitlement-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', updateEntitlementsSummary);
+            });
+        }
+        
+        // Create a single entitlement element
+        function createEntitlementElement(key, value, inApp, inProvision) {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'entitlement-item';
+            
+            // Format the value for display
+            const valueStr = JSON.stringify(value);
+            let valueDisplay = formatEntitlementValue(value);
+            
+            // Get description or default
+            const description = entitlementDescriptions[key] || 'This entitlement configures app capabilities.';
+            
+            // Create the HTML structure
+            itemDiv.innerHTML = `
+                <input type="checkbox" class="entitlement-checkbox" id="entitlement-${key.replace(/\./g, '-')}" 
+                       data-key="${key}" data-value='${valueStr}' ${inApp ? 'checked' : ''}>
+                <div class="entitlement-info">
+                    <div class="entitlement-name">
+                        ${key}
+                        ${inApp ? '<span class="app-badge">App</span>' : ''}
+                        ${inProvision ? '<span class="provision-badge">Provision</span>' : ''}
+                        <div class="tooltip">
+                            <i class="fas fa-info-circle info-icon"></i>
+                            <span class="tooltip-text">${description}</span>
+                        </div>
+                    </div>
+                    <div class="entitlement-description">${description}</div>
+                    <div class="entitlement-value">${valueDisplay}</div>
+                </div>
             `;
             
-            for (const [key, value] of Object.entries(entitlements)) {
-                const valueStr = JSON.stringify(value);
-                const valueDisplay = formatEntitlementValue(value);
-                const elementId = `${type}-value-${key.replace(/\./g, '-')}`;
+            return itemDiv;
+        }
+        
+        // Format entitlement value for display
+        function formatEntitlementValue(value) {
+            if (typeof value === 'boolean') {
+                return value ? '<span style="color: #4CAF50;">true</span>' : '<span style="color: #F44336;">false</span>';
+            } else if (Array.isArray(value)) {
+                if (value.length === 0) return '[]';
+                return JSON.stringify(value, null, 2)
+                    .replace(/\n/g, '<br>')
+                    .replace(/ /g, '&nbsp;');
+            } else if (typeof value === 'object' && value !== null) {
+                return JSON.stringify(value, null, 2)
+                    .replace(/\n/g, '<br>')
+                    .replace(/ /g, '&nbsp;');
+            } else {
+                return String(value);
+            }
+        }
+        
+        // Update entitlements summary
+        function updateEntitlementsSummary() {
+            const selectedEntitlements = {};
+            const checkboxes = document.querySelectorAll('.entitlement-checkbox:checked');
+            
+            checkboxes.forEach(checkbox => {
+                const key = checkbox.dataset.key;
+                const value = JSON.parse(checkbox.dataset.value);
+                selectedEntitlements[key] = value;
+            });
+            
+            // Create summary HTML
+            let summaryHtml = '';
+            
+            if (checkboxes.length === 0) {
+                summaryHtml = '<p>No entitlements selected. Your app will be signed without any entitlements.</p>';
+            } else {
+                summaryHtml = `
+                    <p>You have selected ${checkboxes.length} entitlement(s) for your app:</p>
+                    <ul class="selected-entitlements-list">
+                `;
                 
-                html += `
-                    <tr>
+                checkboxes.forEach(checkbox => {
+                    const key = checkbox.dataset.key;
+                    summaryHtml += `<li>${key}</li>`;
+                });
+                
+                summaryHtml += '</ul>';
+            }
+            
+            // Add the entitlements XML preview
+            if (checkboxes.length > 0) {
+                const plistXml = createPlistXml(selectedEntitlements);
+                const previewXml = plistXml.substring(0, 200) + (plistXml.length > 200 ? '...' : '');
+                
+                summaryHtml += `
+                    <div class="entitlements-xml-preview">
+                        <h4>Entitlements XML Preview:</h4>
+                        <pre style="max-height: 100px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 4px; font-size: 0.8rem;">${previewXml}</pre>
+                    </div>
+                `;
+            }
+            
+            selectedSummary.innerHTML = summaryHtml;
+        }
+        
+        // Create plist XML from selected entitlements
+        function createPlistXml(entitlements) {
+            let plistXml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+            plistXml += '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n';
+            plistXml += '<plist version="1.0">\n';
+            plistXml += '<dict>\n';
+            
+            for (const [key, value] of Object.entries(entitlements)) {
+                plistXml += `    <key>${key}</key>\n`;
+                plistXml += formatPlistValue(value, 1);
+            }
+            
+            plistXml += '</dict>\n';
+            plistXml += '</plist>';
+            
+            return plistXml;
+        }
+        
+        // Format value for plist XML
+        function formatPlistValue(value, indent) {
+            const indentStr = '    '.repeat(indent);
+            
+            if (typeof value === 'boolean') {
+                return `${indentStr}<${value ? 'true' : 'false'}/>\n`;
+            } else if (typeof value === 'string') {
+                return `${indentStr}<string>${value}</string>\n`;
+            } else if (typeof value === 'number') {
+                if (Number.isInteger(value)) {
+                    return `${indentStr}<integer>${value}</integer>\n`;
+                } else {
+                    return `${indentStr}<real>${value}</real>\n`;
+                }
+            } else if (Array.isArray(value)) {
+                let result = `${indentStr}<array>\n`;
+                for (const item of value) {
+                    result += formatPlistValue(item, indent + 1);
+                }
+                result += `${indentStr}</array>\n`;
+                return result;
+            } else if (typeof value === 'object' && value !== null) {
+                let result = `${indentStr}<dict>\n`;
+                for (const [k, v] of Object.entries(value)) {
+                    result += `${indentStr}    <key>${k}</key>\n`;
+                    result += formatPlistValue(v, indent + 1);
+                }
+                result += `${indentStr}</dict>\n`;
+                return result;
+            } else {
+                return `${indentStr}<string>${value}</string>\n`;
+            }
+        }
+    });
+</script>
+{% endblock %}
                         <td class="key-column">${key}</td>
                         <td class="value-column">
                             <span class="entitlements-value" id="${elementId}" data-value='${valueStr}'>${valueDisplay}</span>
