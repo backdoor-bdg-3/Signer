@@ -21,8 +21,10 @@ services:
         value: 600
       - key: LFS_REPO_PATH
         value: /tmp/lfs_storage
+      - key: PORT
+        sync: false
 
-  - type: web
+  - type: worker
     name: backdoor-web-signer-worker
     env: python
     buildCommand: |
