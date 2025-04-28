@@ -1,0 +1,788 @@
+{% extends "base.html" %}
+
+{% block title %}App Entitlements - Backdoor Web Signer{% endblock %}
+
+{% block extra_head %}
+<style>
+    .entitlements-page {
+        padding: var(--spacing-lg);
+    }
+    
+    .entitlements-header {
+        margin-bottom: var(--spacing-lg);
+        text-align: center;
+    }
+    
+    .entitlements-header h2 {
+        color: var(--primary-light);
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    .entitlements-header p {
+        color: var(--text-secondary);
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .entitlements-container {
+        background-color: var(--dark-surface);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-lg);
+        padding: var(--spacing-lg);
+        margin-bottom: var(--spacing-xl);
+    }
+    
+    .entitlements-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--spacing-lg);
+    }
+    
+    @media (max-width: 768px) {
+        .entitlements-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    .entitlements-card {
+        background-color: var(--dark-surface-2);
+        border-radius: var(--border-radius-md);
+        padding: var(--spacing-md);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .entitlements-card h3 {
+        color: var(--secondary-color);
+        margin-bottom: var(--spacing-md);
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+    }
+    
+    .entitlements-card h3 i {
+        font-size: 1.2rem;
+    }
+    
+    .entitlements-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: var(--spacing-md);
+    }
+    
+    .entitlements-table th,
+    .entitlements-table td {
+        padding: var(--spacing-sm);
+        text-align: left;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .entitlements-table th {
+        color: var(--text-primary);
+        font-weight: 600;
+        background-color: rgba(0, 0, 0, 0.2);
+    }
+    
+    .entitlements-table tr:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+    
+    .entitlements-table .key-column {
+        width: 60%;
+    }
+    
+    .entitlements-table .value-column {
+        width: 30%;
+    }
+    
+    .entitlements-table .select-column {
+        width: 10%;
+        text-align: center;
+    }
+    
+    .entitlements-table .checkbox-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .entitlements-table .custom-checkbox {
+        appearance: none;
+        -webkit-appearance: none;
+        width: 20px;
+        height: 20px;
+        background-color: var(--dark-surface);
+        border: 2px solid var(--primary-color);
+        border-radius: var(--border-radius-sm);
+        cursor: pointer;
+        position: relative;
+        transition: var(--transition-fast);
+    }
+    
+    .entitlements-table .custom-checkbox:checked {
+        background-color: var(--primary-color);
+    }
+    
+    .entitlements-table .custom-checkbox:checked::after {
+        content: '✓';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 12px;
+    }
+    
+    .entitlements-table .unavailable {
+        opacity: 0.6;
+    }
+    
+    .entitlements-table .unavailable .custom-checkbox {
+        border-color: var(--text-secondary);
+    }
+    
+    .entitlements-value {
+        font-family: monospace;
+        background-color: rgba(0, 0, 0, 0.2);
+        padding: 2px 4px;
+        border-radius: 3px;
+        word-break: break-all;
+    }
+    
+    .entitlements-warning {
+        background-color: rgba(255, 171, 0, 0.1);
+        border-left: 3px solid var(--warning-color);
+        padding: var(--spacing-md);
+        margin-top: var(--spacing-lg);
+        border-radius: var(--border-radius-sm);
+    }
+    
+    .entitlements-warning h4 {
+        color: var(--warning-color);
+        margin-bottom: var(--spacing-sm);
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+    }
+    
+    .entitlements-actions {
+        display: flex;
+        justify-content: center;
+        gap: var(--spacing-md);
+        margin-top: var(--spacing-lg);
+    }
+    
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        border-radius: var(--border-radius-md);
+        cursor: pointer;
+        transition: var(--transition-normal);
+        text-decoration: none;
+        border: none;
+        outline: none;
+        position: relative;
+        overflow: hidden;
+        gap: 0.5rem;
+        min-width: 120px;
+    }
+    
+    .loading-spinner {
+        display: none;
+        width: 20px;
+        height: 20px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: var(--text-primary);
+        animation: spin 1s linear infinite;
+        margin: 0 auto;
+    }
+    
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+    
+    .entitlements-empty {
+        text-align: center;
+        padding: var(--spacing-xl);
+        color: var(--text-secondary);
+    }
+    
+    .entitlements-empty i {
+        font-size: 3rem;
+        margin-bottom: var(--spacing-md);
+        color: var(--primary-light);
+        opacity: 0.5;
+    }
+    
+    .entitlements-empty p {
+        margin-bottom: var(--spacing-md);
+    }
+    
+    .glow-effect {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle at center, var(--neon-purple) 0%, transparent 70%);
+        opacity: 0.1;
+        pointer-events: none;
+    }
+    
+    .provision-section {
+        margin-bottom: var(--spacing-md);
+    }
+    
+    .provision-section h4 {
+        color: var(--secondary-color);
+        margin-bottom: var(--spacing-sm);
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+    }
+    
+    .udids-container {
+        background-color: rgba(0, 0, 0, 0.2);
+        border-radius: var(--border-radius-sm);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="entitlements-page">
+    <div class="entitlements-header">
+        <h2>App Entitlements Manager</h2>
+        <p>Review and customize the entitlements for your iOS application. Select which entitlements to include in your signed app.</p>
+    </div>
+    
+    <div class="entitlements-container">
+        <div id="loading-container" style="display: none;">
+            <div class="loading-spinner"></div>
+            <p class="text-center">Extracting entitlements from your files...</p>
+        </div>
+        
+        <div id="entitlements-content">
+            <div class="entitlements-empty">
+                <i class="fas fa-file-code"></i>
+                <p>Upload your IPA and provisioning profile to view entitlements</p>
+                <form id="entitlements-upload-form" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <div class="file-upload">
+                            <label for="ipa_file" class="file-label">
+                                <i class="fas fa-file-archive"></i>
+                                <span class="file-text">Choose IPA File</span>
+                            </label>
+                            <input type="file" id="ipa_file" name="ipa_file" class="file-input" accept=".ipa">
+                            <div class="file-name" id="ipa-file-name">No file chosen</div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="file-upload">
+                            <label for="provision_file" class="file-label">
+                                <i class="fas fa-file-signature"></i>
+                                <span class="file-text">Choose Mobile Provision</span>
+                            </label>
+                            <input type="file" id="provision_file" name="provision_file" class="file-input" accept=".mobileprovision">
+                            <div class="file-name" id="provision-file-name">No file chosen</div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Extract Entitlements
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <div id="provision-info" class="entitlements-card" style="display: none; margin-bottom: var(--spacing-lg);">
+            <div class="glow-effect"></div>
+            <h3><i class="fas fa-id-card"></i> Provisioning Profile Information</h3>
+            <div id="provision-info-content"></div>
+        </div>
+        
+        <div id="entitlements-grid" class="entitlements-grid" style="display: none;">
+            <div class="entitlements-card">
+                <div class="glow-effect"></div>
+                <h3><i class="fas fa-mobile-alt"></i> App Entitlements</h3>
+                <div id="app-entitlements-table"></div>
+            </div>
+            
+            <div class="entitlements-card">
+                <div class="glow-effect"></div>
+                <h3><i class="fas fa-file-signature"></i> Provision Profile Entitlements</h3>
+                <div id="provision-entitlements-table"></div>
+            </div>
+        </div>
+        
+        <div id="entitlements-selection" style="display: none;">
+            <div class="entitlements-card">
+                <div class="glow-effect"></div>
+                <h3><i class="fas fa-check-square"></i> Selected Entitlements</h3>
+                <div id="selected-entitlements-table"></div>
+                
+                <div class="entitlements-warning">
+                    <h4><i class="fas fa-exclamation-triangle"></i> Important Note</h4>
+                    <p>It's recommended to only include entitlements that your app actually requires. Including unnecessary entitlements may not affect functionality but it's always safer to only use the specific entitlements your app needs.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="entitlements-actions" id="entitlements-actions" style="display: none;">
+        <button id="apply-entitlements-btn" class="btn btn-primary">
+            <i class="fas fa-check"></i> Apply Selected Entitlements
+        </button>
+        <a href="{{ url_for('main.advanced') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Advanced Signing
+        </a>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const entitlementsUploadForm = document.getElementById('entitlements-upload-form');
+        const loadingContainer = document.getElementById('loading-container');
+        const entitlementsContent = document.getElementById('entitlements-content');
+        const entitlementsGrid = document.getElementById('entitlements-grid');
+        const entitlementsSelection = document.getElementById('entitlements-selection');
+        const entitlementsActions = document.getElementById('entitlements-actions');
+        const appEntitlementsTable = document.getElementById('app-entitlements-table');
+        const provisionEntitlementsTable = document.getElementById('provision-entitlements-table');
+        const selectedEntitlementsTable = document.getElementById('selected-entitlements-table');
+        const applyEntitlementsBtn = document.getElementById('apply-entitlements-btn');
+        const provisionInfoSection = document.getElementById('provision-info');
+        const provisionInfoContent = document.getElementById('provision-info-content');
+        
+        // File input display
+        const fileInputs = {
+            'ipa_file': 'ipa-file-name',
+            'provision_file': 'provision-file-name'
+        };
+        
+        for (const [inputId, displayId] of Object.entries(fileInputs)) {
+            const input = document.getElementById(inputId);
+            const display = document.getElementById(displayId);
+            
+            if (input && display) {
+                input.addEventListener('change', function() {
+                    if (this.files.length > 0) {
+                        display.textContent = this.files[0].name;
+                        display.classList.add('has-file');
+                    } else {
+                        display.textContent = 'No file chosen';
+                        display.classList.remove('has-file');
+                    }
+                });
+            }
+        }
+        
+        // Extract entitlements form submission
+        if (entitlementsUploadForm) {
+            entitlementsUploadForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const ipaFile = document.getElementById('ipa_file').files[0];
+                const provisionFile = document.getElementById('provision_file').files[0];
+                
+                if (!ipaFile || !provisionFile) {
+                    alert('Please select both an IPA file and a provisioning profile.');
+                    return;
+                }
+                
+                // Show loading spinner
+                entitlementsContent.style.display = 'none';
+                loadingContainer.style.display = 'block';
+                
+                const formData = new FormData();
+                formData.append('ipa_file', ipaFile);
+                formData.append('provision_file', provisionFile);
+                
+                // Send request to extract entitlements
+                fetch('/extract-entitlements', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Hide loading spinner
+                    loadingContainer.style.display = 'none';
+                    
+                    if (data.error) {
+                        entitlementsContent.innerHTML = `<div class="error-message">${data.error}</div>`;
+                        entitlementsContent.style.display = 'block';
+                        return;
+                    }
+                    
+                    // Display entitlements
+                    const allEntitlements = data.all_entitlements;
+                    const appEntitlements = data.app_entitlements;
+                    const provisionEntitlements = data.provision_entitlements;
+                    const provisionInfo = data.provision_info || {};
+                    
+                    if (Object.keys(allEntitlements).length === 0) {
+                        entitlementsContent.innerHTML = '<div class="entitlements-empty"><i class="fas fa-exclamation-circle"></i><p>No entitlements found in the IPA or provisioning profile.</p></div>';
+                        entitlementsContent.style.display = 'block';
+                        return;
+                    }
+                    
+                    // Show entitlements grid
+                    entitlementsGrid.style.display = 'grid';
+                    entitlementsSelection.style.display = 'block';
+                    entitlementsActions.style.display = 'flex';
+                    
+                    // Display provision info if available
+                    if (provisionInfo && Object.keys(provisionInfo).length > 0) {
+                        provisionInfoSection.style.display = 'block';
+                        provisionInfoContent.innerHTML = createProvisionInfoTable(provisionInfo);
+                    }
+                    
+                    // Populate app entitlements table
+                    appEntitlementsTable.innerHTML = createEntitlementsTable(appEntitlements, 'app');
+                    
+                    // Populate provision entitlements table
+                    provisionEntitlementsTable.innerHTML = createEntitlementsTable(provisionEntitlements, 'provision');
+                    
+                    // Populate selected entitlements table
+                    updateSelectedEntitlements();
+                    
+                    // Add event listeners to checkboxes
+                    const checkboxes = document.querySelectorAll('.entitlement-checkbox');
+                    checkboxes.forEach(checkbox => {
+                        checkbox.addEventListener('change', updateSelectedEntitlements);
+                    });
+                })
+                .catch(error => {
+                    loadingContainer.style.display = 'none';
+                    entitlementsContent.innerHTML = `<div class="error-message">Error: ${error.message}</div>`;
+                    entitlementsContent.style.display = 'block';
+                });
+            });
+        }
+        
+        // Apply selected entitlements
+        if (applyEntitlementsBtn) {
+            applyEntitlementsBtn.addEventListener('click', function() {
+                const selectedEntitlements = {};
+                const checkboxes = document.querySelectorAll('.entitlement-checkbox:checked');
+                
+                checkboxes.forEach(checkbox => {
+                    const key = checkbox.dataset.key;
+                    const type = checkbox.dataset.type;
+                    const valueElement = document.querySelector(`#${type}-value-${key.replace(/\./g, '-')}`);
+                    
+                    if (valueElement) {
+                        const value = JSON.parse(valueElement.dataset.value);
+                        selectedEntitlements[key] = value;
+                    }
+                });
+                
+                // Create plist XML from selected entitlements
+                const plistXml = createPlistXml(selectedEntitlements);
+                
+                // Store in session storage to pass back to the advanced page
+                sessionStorage.setItem('selectedEntitlements', plistXml);
+                
+                // Redirect back to advanced signing page
+                window.location.href = "{{ url_for('main.advanced') }}";
+            });
+        }
+        
+        // Helper function to create entitlements table
+        function createEntitlementsTable(entitlements, type) {
+            if (Object.keys(entitlements).length === 0) {
+                return '<p class="text-center">No entitlements found.</p>';
+            }
+            
+            let html = `
+                <table class="entitlements-table">
+                    <thead>
+                        <tr>
+                            <th class="key-column">Entitlement</th>
+                            <th class="value-column">Value</th>
+                            <th class="select-column">Select</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            for (const [key, value] of Object.entries(entitlements)) {
+                const valueStr = JSON.stringify(value);
+                const valueDisplay = formatEntitlementValue(value);
+                const elementId = `${type}-value-${key.replace(/\./g, '-')}`;
+                
+                html += `
+                    <tr>
+                        <td class="key-column">${key}</td>
+                        <td class="value-column">
+                            <span class="entitlements-value" id="${elementId}" data-value='${valueStr}'>${valueDisplay}</span>
+                        </td>
+                        <td class="select-column">
+                            <div class="checkbox-wrapper">
+                                <input type="checkbox" class="custom-checkbox entitlement-checkbox" 
+                                       id="${type}-checkbox-${key.replace(/\./g, '-')}" 
+                                       data-key="${key}" 
+                                       data-type="${type}" 
+                                       checked>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }
+            
+            html += `
+                    </tbody>
+                </table>
+            `;
+            
+            return html;
+        }
+        
+        // Helper function to format entitlement values for display
+        function createProvisionInfoTable(provisionInfo) {
+            let html = '<div class="provision-info-container">';
+            
+            // Profile information
+            html += `
+                <div class="provision-section">
+                    <h4><i class="fas fa-info-circle"></i> Profile Details</h4>
+                    <table class="entitlements-table">
+                        <tbody>
+                            <tr>
+                                <td class="key-column">Profile Name</td>
+                                <td class="value-column"><span class="entitlements-value">${provisionInfo.profile_name || 'N/A'}</span></td>
+                            </tr>
+                            <tr>
+                                <td class="key-column">Team Name</td>
+                                <td class="value-column"><span class="entitlements-value">${provisionInfo.team_name || 'N/A'}</span></td>
+                            </tr>
+                            <tr>
+                                <td class="key-column">App ID Name</td>
+                                <td class="value-column"><span class="entitlements-value">${provisionInfo.app_id_name || 'N/A'}</span></td>
+                            </tr>
+                            <tr>
+                                <td class="key-column">Creation Date</td>
+                                <td class="value-column"><span class="entitlements-value">${provisionInfo.creation_date ? new Date(provisionInfo.creation_date).toLocaleString() : 'N/A'}</span></td>
+                            </tr>
+                            <tr>
+                                <td class="key-column">Expiration Date</td>
+                                <td class="value-column"><span class="entitlements-value">${provisionInfo.expiration_date ? new Date(provisionInfo.expiration_date).toLocaleString() : 'N/A'}</span></td>
+                            </tr>
+                            <tr>
+                                <td class="key-column">Developer Profile</td>
+                                <td class="value-column"><span class="entitlements-value">${provisionInfo.is_developer_profile ? 'Yes' : 'No'}</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            // UDIDs section
+            const udids = provisionInfo.udids || [];
+            if (udids.length > 0) {
+                html += `
+                    <div class="provision-section" style="margin-top: 20px;">
+                        <h4><i class="fas fa-mobile-alt"></i> Provisioned Devices (${udids.length})</h4>
+                        <div class="udids-container" style="max-height: 200px; overflow-y: auto; margin-top: 10px;">
+                            <table class="entitlements-table">
+                                <thead>
+                                    <tr>
+                                        <th>Device UDID</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                `;
+                
+                udids.forEach(udid => {
+                    html += `
+                        <tr>
+                            <td><span class="entitlements-value">${udid}</span></td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+                
+                // Add warning for developer profiles with UDIDs
+                if (provisionInfo.is_developer_profile) {
+                    html += `
+                        <div class="entitlements-warning" style="margin-top: 20px;">
+                            <h4><i class="fas fa-exclamation-triangle"></i> Developer Profile with Device Restrictions</h4>
+                            <p>This is an Apple Developer profile with specific device UDIDs. The app will only work on the devices listed above. 
+                            The signer will use the force flag (-f) to ensure proper signing with UDID restrictions.</p>
+                        </div>
+                    `;
+                }
+            } else {
+                html += `
+                    <div class="provision-section" style="margin-top: 20px;">
+                        <h4><i class="fas fa-mobile-alt"></i> Provisioned Devices</h4>
+                        <p>No specific device restrictions. This app can be installed on any device.</p>
+                    </div>
+                `;
+            }
+            
+            html += '</div>';
+            return html;
+        }
+        
+        function formatEntitlementValue(value) {
+            if (typeof value === 'boolean') {
+                return value ? 'true' : 'false';
+            } else if (Array.isArray(value)) {
+                if (value.length === 0) {
+                    return '[]';
+                } else if (value.length === 1) {
+                    return `[${formatEntitlementValue(value[0])}]`;
+                } else {
+                    return `[${value.length} items]`;
+                }
+            } else if (typeof value === 'object' && value !== null) {
+                return '{...}';
+            } else {
+                return String(value);
+            }
+        }
+        
+        // Update selected entitlements table
+        function updateSelectedEntitlements() {
+            const selectedEntitlements = {};
+            const checkboxes = document.querySelectorAll('.entitlement-checkbox:checked');
+            
+            checkboxes.forEach(checkbox => {
+                const key = checkbox.dataset.key;
+                const type = checkbox.dataset.type;
+                const valueElement = document.querySelector(`#${type}-value-${key.replace(/\./g, '-')}`);
+                
+                if (valueElement) {
+                    const value = JSON.parse(valueElement.dataset.value);
+                    selectedEntitlements[key] = {
+                        value: value,
+                        type: type
+                    };
+                }
+            });
+            
+            // Populate selected entitlements table
+            if (Object.keys(selectedEntitlements).length === 0) {
+                selectedEntitlementsTable.innerHTML = '<p class="text-center">No entitlements selected.</p>';
+                return;
+            }
+            
+            let html = `
+                <table class="entitlements-table">
+                    <thead>
+                        <tr>
+                            <th class="key-column">Entitlement</th>
+                            <th class="value-column">Value</th>
+                            <th>Source</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            for (const [key, data] of Object.entries(selectedEntitlements)) {
+                const valueDisplay = formatEntitlementValue(data.value);
+                const sourceIcon = data.type === 'app' ? 
+                    '<i class="fas fa-mobile-alt" title="From App"></i>' : 
+                    '<i class="fas fa-file-signature" title="From Provision Profile"></i>';
+                
+                html += `
+                    <tr>
+                        <td class="key-column">${key}</td>
+                        <td class="value-column">
+                            <span class="entitlements-value">${valueDisplay}</span>
+                        </td>
+                        <td>${sourceIcon}</td>
+                    </tr>
+                `;
+            }
+            
+            html += `
+                    </tbody>
+                </table>
+            `;
+            
+            selectedEntitlementsTable.innerHTML = html;
+        }
+        
+        // Create plist XML from entitlements object
+        function createPlistXml(entitlements) {
+            let xml = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+`;
+            
+            for (const [key, value] of Object.entries(entitlements)) {
+                xml += `    <key>${key}</key>\n`;
+                xml += `    ${formatPlistValue(value)}\n`;
+            }
+            
+            xml += `</dict>
+</plist>`;
+            
+            return xml;
+        }
+        
+        // Format value for plist XML
+        function formatPlistValue(value) {
+            if (typeof value === 'boolean') {
+                return value ? '<true/>' : '<false/>';
+            } else if (typeof value === 'number') {
+                if (Number.isInteger(value)) {
+                    return `<integer>${value}</integer>`;
+                } else {
+                    return `<real>${value}</real>`;
+                }
+            } else if (typeof value === 'string') {
+                return `<string>${escapeXml(value)}</string>`;
+            } else if (Array.isArray(value)) {
+                let arrayXml = '<array>\n';
+                for (const item of value) {
+                    arrayXml += `        ${formatPlistValue(item)}\n`;
+                }
+                arrayXml += '    </array>';
+                return arrayXml;
+            } else if (typeof value === 'object' && value !== null) {
+                let dictXml = '<dict>\n';
+                for (const [k, v] of Object.entries(value)) {
+                    dictXml += `        <key>${escapeXml(k)}</key>\n`;
+                    dictXml += `        ${formatPlistValue(v)}\n`;
+                }
+                dictXml += '    </dict>';
+                return dictXml;
+            } else {
+                return `<string>${escapeXml(String(value))}</string>`;
+            }
+        }
+        
+        // Escape XML special characters
+        function escapeXml(unsafe) {
+            return unsafe.replace(/[<>&'"]/g, function(c) {
+                switch (c) {
+                    case '<': return '&lt;';
+                    case '>': return '&gt;';
+                    case '&': return '&amp;';
+                    case '\'': return '&apos;';
+                    case '"': return '&quot;';
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -22,11 +22,19 @@ def allowed_file(filename):
 
 @main_bp.route('/')
 def index():
-    return render_template('index.html', form=SigningForm())
+    return render_template('index.html')
+
+@main_bp.route('/basic')
+def basic_signing():
+    return render_template('basic_signing.html', form=SigningForm())
 
 @main_bp.route('/advanced')
 def advanced():
     return render_template('advanced.html', form=AdvancedSigningForm())
+
+@main_bp.route('/entitlements')
+def entitlements():
+    return render_template('entitlements.html')
 
 @main_bp.route('/sign', methods=['POST'])
 def sign_app():
@@ -36,7 +44,7 @@ def sign_app():
         for field, errors in form.errors.items():
             for error in errors:
                 flash(f"Error in {getattr(form, field).label.text}: {error}", "error")
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.basic_signing'))
     
     # Create a unique session ID for this signing request
     session_id = str(uuid.uuid4())
@@ -75,6 +83,9 @@ def sign_app():
     output_filename = f"signed_{os.path.basename(ipa_path)}"
     output_path = os.path.join(current_app.config['SIGNED_FOLDER'], output_filename)
     
+    # Extract provision info to check for Apple Developer certificate
+    provision_info = extract_udids_from_provision(provision_path)
+    
     # Execute zsign command
     try:
         cmd = [
@@ -85,6 +96,10 @@ def sign_app():
             '-o', output_path, 
             '-z', '9'  # Compression level
         ]
+        
+        # If this is an Apple Developer certificate with UDID, add force flag
+        if provision_info.get('is_developer_profile', False) and provision_info.get('udids', []):
+            cmd.append('-f')  # Force sign even with UDID restrictions
         
         # Add optional parameters if provided
         if form.bundle_id.data:
@@ -201,6 +216,9 @@ def sign_app_advanced():
     output_filename = f"signed_{os.path.basename(ipa_path)}"
     output_path = os.path.join(current_app.config['SIGNED_FOLDER'], output_filename)
     
+    # Extract provision info to check for Apple Developer certificate
+    provision_info = extract_udids_from_provision(provision_path)
+    
     # Execute zsign command
     try:
         cmd = [
@@ -210,6 +228,10 @@ def sign_app_advanced():
             '-m', provision_path, 
             '-o', output_path
         ]
+        
+        # If this is an Apple Developer certificate with UDID, add force flag
+        if provision_info.get('is_developer_profile', False) and provision_info.get('udids', []):
+            cmd.append('-f')  # Force sign even with UDID restrictions
         
         # Add optional parameters
         if form.bundle_id.data:
@@ -409,6 +431,54 @@ def extract_provision_entitlements(provision_path):
     except Exception as e:
         print(f"Error extracting provision entitlements: {str(e)}")
         return {}
+        
+def extract_udids_from_provision(provision_path):
+    """Extract UDIDs from a provisioning profile"""
+    try:
+        # Read the provisioning profile
+        with open(provision_path, 'rb') as f:
+            data = f.read()
+
+        # Extract the plist data
+        pattern = b'<plist.*?</plist>'
+        match = re.search(pattern, data, re.DOTALL)
+
+        if not match:
+            return {'udids': [], 'is_developer_profile': False}
+
+        plist_data = match.group(0)
+
+        # Parse the plist
+        provision = plistlib.loads(plist_data)
+        
+        # Get the provisioned devices
+        udids = provision.get('ProvisionedDevices', [])
+        
+        # Check if this is a development profile with PPQ check
+        is_developer_profile = False
+        profile_type = provision.get('ProvisionsAllDevices', False)
+        if not profile_type:
+            # Check for developer certificate
+            certificates = provision.get('DeveloperCertificates', [])
+            for cert_data in certificates:
+                # Check if it's an Apple Developer certificate
+                if b'Apple Development' in cert_data or b'iPhone Developer' in cert_data:
+                    is_developer_profile = True
+                    break
+        
+        return {
+            'udids': udids,
+            'is_developer_profile': is_developer_profile,
+            'profile_name': provision.get('Name', ''),
+            'team_name': provision.get('TeamName', ''),
+            'creation_date': provision.get('CreationDate', '').isoformat() if provision.get('CreationDate') else '',
+            'expiration_date': provision.get('ExpirationDate', '').isoformat() if provision.get('ExpirationDate') else '',
+            'app_id_name': provision.get('AppIDName', ''),
+            'platform': provision.get('Platform', []),
+        }
+    except Exception as e:
+        print(f"Error extracting UDIDs from provision: {str(e)}")
+        return {'udids': [], 'is_developer_profile': False}
 
 def create_ota_manifest(manifest_path, app_info, ipa_url, ipa_filename):
     """Create OTA installation manifest plist file"""
@@ -489,6 +559,11 @@ def about():
 def contact():
     return render_template('contact.html')
 
+@main_bp.route('/entitlements')
+def entitlements_page():
+    """Display the entitlements management page"""
+    return render_template('entitlements.html')
+
 @main_bp.route('/extract-entitlements', methods=['POST'])
 def extract_entitlements():
     """Extract entitlements from uploaded IPA and provisioning profile"""
@@ -518,6 +593,9 @@ def extract_entitlements():
             app_entitlements = extract_app_entitlements(ipa_path)
             provision_entitlements = extract_provision_entitlements(provision_path)
             
+            # Extract UDID information
+            provision_info = extract_udids_from_provision(provision_path)
+            
             # Compare entitlements
             all_entitlements = {}
             
@@ -540,7 +618,8 @@ def extract_entitlements():
             return jsonify({
                 'app_entitlements': app_entitlements,
                 'provision_entitlements': provision_entitlements,
-                'all_entitlements': all_entitlements
+                'all_entitlements': all_entitlements,
+                'provision_info': provision_info
             })
             
         finally:

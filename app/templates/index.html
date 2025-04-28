@@ -8,8 +8,12 @@
         <h2>Sign Your iOS Apps</h2>
         <p>Fast, secure, and reliable iOS app signing service</p>
         <div class="hero-cta">
-            <a href="#signing-form" class="btn btn-primary pulse-btn">Start Signing</a>
-            <a href="{{ url_for('main.about') }}" class="btn btn-secondary">Learn More</a>
+            <a href="{{ url_for('main.basic_signing') }}" class="btn btn-primary pulse-btn">
+                <i class="fas fa-signature"></i> Start Signing
+            </a>
+            <a href="{{ url_for('main.advanced') }}" class="btn btn-secondary">
+                <i class="fas fa-cogs"></i> Advanced Options
+            </a>
         </div>
     </div>
 </section>
@@ -48,119 +52,6 @@
     </div>
 </section>
 
-<section class="signing-section" id="signing-form">
-    <h2>Sign Your iOS App</h2>
-    <div class="form-container">
-        <form method="POST" action="{{ url_for('main.sign_app') }}" enctype="multipart/form-data" class="signing-form">
-            {{ form.csrf_token }}
-            
-            <div class="form-group">
-                <div class="file-upload">
-                    <label for="{{ form.ipa_file.id }}" class="file-label">
-                        <i class="fas fa-file-archive"></i>
-                        <span class="file-text">Choose IPA File</span>
-                    </label>
-                    {{ form.ipa_file(class="file-input", id=form.ipa_file.id) }}
-                    <div class="file-name" id="ipa-file-name">No file chosen</div>
-                </div>
-                {% if form.ipa_file.errors %}
-                    <div class="errors">
-                        {% for error in form.ipa_file.errors %}
-                            <span>{{ error }}</span>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            </div>
-            
-            <div class="form-group">
-                <div class="file-upload">
-                    <label for="{{ form.p12_file.id }}" class="file-label">
-                        <i class="fas fa-certificate"></i>
-                        <span class="file-text">Choose P12 Certificate</span>
-                    </label>
-                    {{ form.p12_file(class="file-input", id=form.p12_file.id) }}
-                    <div class="file-name" id="p12-file-name">No file chosen</div>
-                </div>
-                {% if form.p12_file.errors %}
-                    <div class="errors">
-                        {% for error in form.p12_file.errors %}
-                            <span>{{ error }}</span>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            </div>
-            
-            <div class="form-group">
-                <div class="file-upload">
-                    <label for="{{ form.provision_file.id }}" class="file-label">
-                        <i class="fas fa-file-signature"></i>
-                        <span class="file-text">Choose Mobile Provision</span>
-                    </label>
-                    {{ form.provision_file(class="file-input", id=form.provision_file.id) }}
-                    <div class="file-name" id="provision-file-name">No file chosen</div>
-                </div>
-                {% if form.provision_file.errors %}
-                    <div class="errors">
-                        {% for error in form.provision_file.errors %}
-                            <span>{{ error }}</span>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            </div>
-            
-            <div class="form-group">
-                <label for="{{ form.p12_password.id }}">P12 Password</label>
-                {{ form.p12_password(class="form-control", placeholder="Enter P12 password") }}
-                {% if form.p12_password.errors %}
-                    <div class="errors">
-                        {% for error in form.p12_password.errors %}
-                            <span>{{ error }}</span>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            </div>
-            
-            <div class="form-section">
-                <h3>Optional Customization</h3>
-                
-                <div class="form-group">
-                    <label for="{{ form.bundle_id.id }}">{{ form.bundle_id.label.text }}</label>
-                    {{ form.bundle_id(class="form-control", placeholder="com.example.app") }}
-                </div>
-                
-                <div class="form-group">
-                    <label for="{{ form.bundle_name.id }}">{{ form.bundle_name.label.text }}</label>
-                    {{ form.bundle_name(class="form-control", placeholder="My App") }}
-                </div>
-                
-                <div class="form-group">
-                    <label for="{{ form.bundle_version.id }}">{{ form.bundle_version.label.text }}</label>
-                    {{ form.bundle_version(class="form-control", placeholder="1.0.0") }}
-                </div>
-                
-                <div class="form-group">
-                    <div class="file-upload">
-                        <label for="{{ form.app_icon.id }}" class="file-label">
-                            <i class="fas fa-image"></i>
-                            <span class="file-text">{{ form.app_icon.label.text }}</span>
-                        </label>
-                        {{ form.app_icon(class="file-input", id=form.app_icon.id) }}
-                        <div class="file-name" id="app-icon-name">No file chosen</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="form-group">
-                {{ form.submit(class="btn btn-primary submit-btn") }}
-            </div>
-            
-            <div class="advanced-link">
-                <p>Need more options? Try our <a href="{{ url_for('main.advanced') }}">Advanced Signing</a> with full zsign capabilities.</p>
-            </div>
-        </form>
-    </div>
-</section>
-
 <section class="how-it-works">
     <h2>How It Works</h2>
     <div class="steps">
@@ -189,8 +80,48 @@
             <div class="step-number">4</div>
             <div class="step-content">
                 <h3>Install</h3>
-                <p>Install directly on your iOS device or download the signed IPA file</p>
+                <p>Install directly on your iOS device via OTA installation</p>
             </div>
+        </div>
+    </div>
+    
+    <div class="cta-container">
+        <a href="{{ url_for('main.basic_signing') }}" class="btn btn-primary">
+            <i class="fas fa-signature"></i> Sign Your App Now
+        </a>
+    </div>
+</section>
+
+<section class="features-detailed">
+    <h2>Powerful Features</h2>
+    <div class="features-detailed-grid">
+        <div class="feature-detailed-card">
+            <div class="feature-detailed-icon">
+                <i class="fas fa-mobile-alt"></i>
+            </div>
+            <h3>OTA Installation</h3>
+            <p>Install signed apps directly on your iOS device without a computer using our Over-The-Air installation system.</p>
+        </div>
+        <div class="feature-detailed-card">
+            <div class="feature-detailed-icon">
+                <i class="fas fa-paint-brush"></i>
+            </div>
+            <h3>App Customization</h3>
+            <p>Customize your app's bundle ID, name, version, and even replace the app icon with your own design.</p>
+        </div>
+        <div class="feature-detailed-card">
+            <div class="feature-detailed-icon">
+                <i class="fas fa-key"></i>
+            </div>
+            <h3>Entitlements Control</h3>
+            <p>View and modify app entitlements to enable additional features and capabilities in your signed apps.</p>
+        </div>
+        <div class="feature-detailed-card">
+            <div class="feature-detailed-icon">
+                <i class="fas fa-code"></i>
+            </div>
+            <h3>Advanced Options</h3>
+            <p>Access advanced signing options including dylib injection, weak signatures, and custom entitlements for power users.</p>
         </div>
     </div>
 </section>
