@@ -12,6 +12,7 @@ from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, send_from_directory, current_app, Response, session
 from werkzeug.utils import secure_filename
 from app.forms import SigningForm, AdvancedSigningForm
+from app.utils.storage import storage_manager
 
 main_bp = Blueprint('main', __name__)
 
@@ -48,46 +49,46 @@ def sign_app():
     
     # Create a unique session ID for this signing request
     session_id = str(uuid.uuid4())
-    session_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], session_id)
-    os.makedirs(session_dir, exist_ok=True)
+    temp_dir = tempfile.mkdtemp()
     
-    # Save uploaded files
-    ipa_file = form.ipa_file.data
-    p12_file = form.p12_file.data
-    provision_file = form.provision_file.data
-    
-    ipa_filename = secure_filename(ipa_file.filename)
-    p12_filename = secure_filename(p12_file.filename)
-    provision_filename = secure_filename(provision_file.filename)
-    
-    ipa_path = os.path.join(session_dir, ipa_filename)
-    p12_path = os.path.join(session_dir, p12_filename)
-    provision_path = os.path.join(session_dir, provision_filename)
-    
-    ipa_file.save(ipa_path)
-    p12_file.save(p12_path)
-    provision_file.save(provision_path)
-    
-    # Save app icon if provided
-    icon_path = None
-    if form.app_icon.data and form.app_icon.data.filename:
-        icon_file = form.app_icon.data
-        icon_filename = secure_filename(icon_file.filename)
-        icon_path = os.path.join(session_dir, icon_filename)
-        icon_file.save(icon_path)
-    
-    # Extract app info from IPA for OTA manifest
-    app_info = extract_app_info(ipa_path)
-    
-    # Output path for signed IPA
-    output_filename = f"signed_{os.path.basename(ipa_path)}"
-    output_path = os.path.join(current_app.config['SIGNED_FOLDER'], output_filename)
-    
-    # Extract provision info to check for Apple Developer certificate
-    provision_info = extract_udids_from_provision(provision_path)
-    
-    # Execute zsign command
     try:
+        # Save uploaded files using storage manager
+        ipa_file = form.ipa_file.data
+        p12_file = form.p12_file.data
+        provision_file = form.provision_file.data
+        
+        # Save files to temporary directory first
+        ipa_filename = secure_filename(ipa_file.filename)
+        p12_filename = secure_filename(p12_file.filename)
+        provision_filename = secure_filename(provision_file.filename)
+        
+        ipa_path = os.path.join(temp_dir, ipa_filename)
+        p12_path = os.path.join(temp_dir, p12_filename)
+        provision_path = os.path.join(temp_dir, provision_filename)
+        
+        ipa_file.save(ipa_path)
+        p12_file.save(p12_path)
+        provision_file.save(provision_path)
+        
+        # Save app icon if provided
+        icon_path = None
+        if form.app_icon.data and form.app_icon.data.filename:
+            icon_file = form.app_icon.data
+            icon_filename = secure_filename(icon_file.filename)
+            icon_path = os.path.join(temp_dir, icon_filename)
+            icon_file.save(icon_path)
+        
+        # Extract app info from IPA for OTA manifest
+        app_info = extract_app_info(ipa_path)
+        
+        # Output path for signed IPA
+        output_filename = f"signed_{os.path.basename(ipa_path)}"
+        output_path = os.path.join(temp_dir, output_filename)
+        
+        # Extract provision info to check for Apple Developer certificate
+        provision_info = extract_udids_from_provision(provision_path)
+        
+        # Execute zsign command
         cmd = [
             'zsign', 
             '-k', p12_path, 
@@ -127,23 +128,37 @@ def sign_app():
             flash(f"Error signing app: {stderr}", "error")
             return redirect(url_for('main.index'))
         
+        # Store the signed IPA using Git LFS
+        with open(output_path, 'rb') as f:
+            success, stored_path = storage_manager.save_file(f, 'signed', output_filename)
+            if not success:
+                flash(f"Error storing signed IPA: {stored_path}", "error")
+                return redirect(url_for('main.index'))
+        
         # Generate OTA manifest and installation URL
         manifest_filename = f"manifest_{session_id}.plist"
-        manifest_path = os.path.join(current_app.config['SIGNED_FOLDER'], manifest_filename)
+        manifest_path = os.path.join(temp_dir, manifest_filename)
+        
+        # Get the URL for the stored IPA
+        ipa_url = request.host_url + url_for('main.download_file', filename=output_filename)[1:]
         
         # Create OTA manifest
         create_ota_manifest(
             manifest_path,
             app_info,
-            request.host_url + url_for('main.download_file', filename=output_filename)[1:],
+            ipa_url,
             output_filename
         )
         
+        # Store the manifest using Git LFS
+        with open(manifest_path, 'rb') as f:
+            success, manifest_stored_path = storage_manager.save_file(f, 'manifests', manifest_filename)
+            if not success:
+                flash(f"Error storing manifest: {manifest_stored_path}", "error")
+                return redirect(url_for('main.index'))
+        
         # Generate OTA installation URL
         ota_url = f"itms-services://?action=download-manifest&url={request.host_url}{url_for('main.download_manifest', filename=manifest_filename)[1:]}"
-        
-        # Clean up uploaded files
-        shutil.rmtree(session_dir)
         
         # Return the download URL and OTA URL
         download_url = url_for('main.download_file', filename=output_filename)
@@ -158,6 +173,10 @@ def sign_app():
     except Exception as e:
         flash(f"Error during signing process: {str(e)}", "error")
         return redirect(url_for('main.index'))
+    
+    finally:
+        # Clean up temporary directory
+        shutil.rmtree(temp_dir, ignore_errors=True)
 
 @main_bp.route('/sign/advanced', methods=['POST'])
 def sign_app_advanced():
@@ -171,56 +190,56 @@ def sign_app_advanced():
     
     # Create a unique session ID for this signing request
     session_id = str(uuid.uuid4())
-    session_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], session_id)
-    os.makedirs(session_dir, exist_ok=True)
+    temp_dir = tempfile.mkdtemp()
     
-    # Save uploaded files
-    ipa_file = form.ipa_file.data
-    p12_file = form.p12_file.data
-    provision_file = form.provision_file.data
-    
-    ipa_filename = secure_filename(ipa_file.filename)
-    p12_filename = secure_filename(p12_file.filename)
-    provision_filename = secure_filename(provision_file.filename)
-    
-    ipa_path = os.path.join(session_dir, ipa_filename)
-    p12_path = os.path.join(session_dir, p12_filename)
-    provision_path = os.path.join(session_dir, provision_filename)
-    
-    ipa_file.save(ipa_path)
-    p12_file.save(p12_path)
-    provision_file.save(provision_path)
-    
-    # Save app icon if provided
-    icon_path = None
-    if form.app_icon.data and form.app_icon.data.filename:
-        icon_file = form.app_icon.data
-        icon_filename = secure_filename(icon_file.filename)
-        icon_path = os.path.join(session_dir, icon_filename)
-        icon_file.save(icon_path)
-    
-    # Handle optional dylib files
-    dylib_paths = []
-    if form.dylib_files.data:
-        for dylib_file in form.dylib_files.data:
-            if dylib_file.filename:
-                dylib_filename = secure_filename(dylib_file.filename)
-                dylib_path = os.path.join(session_dir, dylib_filename)
-                dylib_file.save(dylib_path)
-                dylib_paths.append(dylib_path)
-    
-    # Extract app info from IPA for OTA manifest
-    app_info = extract_app_info(ipa_path)
-    
-    # Output path for signed IPA
-    output_filename = f"signed_{os.path.basename(ipa_path)}"
-    output_path = os.path.join(current_app.config['SIGNED_FOLDER'], output_filename)
-    
-    # Extract provision info to check for Apple Developer certificate
-    provision_info = extract_udids_from_provision(provision_path)
-    
-    # Execute zsign command
     try:
+        # Save uploaded files
+        ipa_file = form.ipa_file.data
+        p12_file = form.p12_file.data
+        provision_file = form.provision_file.data
+        
+        # Save files to temporary directory first
+        ipa_filename = secure_filename(ipa_file.filename)
+        p12_filename = secure_filename(p12_file.filename)
+        provision_filename = secure_filename(provision_file.filename)
+        
+        ipa_path = os.path.join(temp_dir, ipa_filename)
+        p12_path = os.path.join(temp_dir, p12_filename)
+        provision_path = os.path.join(temp_dir, provision_filename)
+        
+        ipa_file.save(ipa_path)
+        p12_file.save(p12_path)
+        provision_file.save(provision_path)
+        
+        # Save app icon if provided
+        icon_path = None
+        if form.app_icon.data and form.app_icon.data.filename:
+            icon_file = form.app_icon.data
+            icon_filename = secure_filename(icon_file.filename)
+            icon_path = os.path.join(temp_dir, icon_filename)
+            icon_file.save(icon_path)
+        
+        # Handle optional dylib files
+        dylib_paths = []
+        if form.dylib_files.data:
+            for dylib_file in form.dylib_files.data:
+                if dylib_file.filename:
+                    dylib_filename = secure_filename(dylib_file.filename)
+                    dylib_path = os.path.join(temp_dir, dylib_filename)
+                    dylib_file.save(dylib_path)
+                    dylib_paths.append(dylib_path)
+        
+        # Extract app info from IPA for OTA manifest
+        app_info = extract_app_info(ipa_path)
+        
+        # Output path for signed IPA
+        output_filename = f"signed_{os.path.basename(ipa_path)}"
+        output_path = os.path.join(temp_dir, output_filename)
+        
+        # Extract provision info to check for Apple Developer certificate
+        provision_info = extract_udids_from_provision(provision_path)
+        
+        # Execute zsign command
         cmd = [
             'zsign', 
             '-k', p12_path, 
@@ -248,7 +267,7 @@ def sign_app_advanced():
             cmd.extend(['-i', icon_path])
         
         if form.entitlements.data:
-            entitlements_path = os.path.join(session_dir, 'entitlements.plist')
+            entitlements_path = os.path.join(temp_dir, 'entitlements.plist')
             with open(entitlements_path, 'w') as f:
                 f.write(form.entitlements.data)
             cmd.extend(['-e', entitlements_path])
@@ -289,23 +308,37 @@ def sign_app_advanced():
             flash(f"Error signing app: {stderr}", "error")
             return redirect(url_for('main.advanced'))
         
+        # Store the signed IPA using Git LFS
+        with open(output_path, 'rb') as f:
+            success, stored_path = storage_manager.save_file(f, 'signed', output_filename)
+            if not success:
+                flash(f"Error storing signed IPA: {stored_path}", "error")
+                return redirect(url_for('main.advanced'))
+        
         # Generate OTA manifest and installation URL
         manifest_filename = f"manifest_{session_id}.plist"
-        manifest_path = os.path.join(current_app.config['SIGNED_FOLDER'], manifest_filename)
+        manifest_path = os.path.join(temp_dir, manifest_filename)
+        
+        # Get the URL for the stored IPA
+        ipa_url = request.host_url + url_for('main.download_file', filename=output_filename)[1:]
         
         # Create OTA manifest
         create_ota_manifest(
             manifest_path,
             app_info,
-            request.host_url + url_for('main.download_file', filename=output_filename)[1:],
+            ipa_url,
             output_filename
         )
         
+        # Store the manifest using Git LFS
+        with open(manifest_path, 'rb') as f:
+            success, manifest_stored_path = storage_manager.save_file(f, 'manifests', manifest_filename)
+            if not success:
+                flash(f"Error storing manifest: {manifest_stored_path}", "error")
+                return redirect(url_for('main.advanced'))
+        
         # Generate OTA installation URL
         ota_url = f"itms-services://?action=download-manifest&url={request.host_url}{url_for('main.download_manifest', filename=manifest_filename)[1:]}"
-        
-        # Clean up uploaded files
-        shutil.rmtree(session_dir)
         
         # Return the download URL and OTA URL
         download_url = url_for('main.download_file', filename=output_filename)
@@ -321,6 +354,10 @@ def sign_app_advanced():
     except Exception as e:
         flash(f"Error during signing process: {str(e)}", "error")
         return redirect(url_for('main.advanced'))
+    
+    finally:
+        # Clean up temporary directory
+        shutil.rmtree(temp_dir, ignore_errors=True)
 
 def extract_app_info(ipa_path):
     """Extract app information from IPA file for OTA manifest"""
@@ -519,32 +556,70 @@ def create_ota_manifest(manifest_path, app_info, ipa_url, ipa_filename):
 
 @main_bp.route('/download/<filename>')
 def download_file(filename):
-    return send_from_directory(current_app.config['SIGNED_FOLDER'], filename, as_attachment=True)
+    # Get the file path from storage manager
+    file_path = storage_manager.get_file(os.path.join('signed', filename))
+    if not file_path:
+        flash("File not found", "error")
+        return redirect(url_for('main.index'))
+    
+    # Get the directory and filename
+    directory, filename = os.path.split(file_path)
+    return send_from_directory(directory, filename, as_attachment=True)
 
 @main_bp.route('/manifest/<filename>')
 def download_manifest(filename):
-    return send_from_directory(current_app.config['SIGNED_FOLDER'], filename, mimetype='application/xml')
+    # Get the file path from storage manager
+    file_path = storage_manager.get_file(os.path.join('manifests', filename))
+    if not file_path:
+        flash("Manifest not found", "error")
+        return redirect(url_for('main.index'))
+    
+    # Get the directory and filename
+    directory, filename = os.path.split(file_path)
+    return send_from_directory(directory, filename, mimetype='application/xml')
 
 @main_bp.route('/install/<filename>')
 def install_app(filename):
     """Display QR code and installation instructions for OTA installation"""
-    if not os.path.exists(os.path.join(current_app.config['SIGNED_FOLDER'], filename)):
+    # Check if the file exists in storage
+    file_path = storage_manager.get_file(os.path.join('signed', filename))
+    if not file_path:
         flash("File not found", "error")
         return redirect(url_for('main.index'))
     
     # Generate manifest filename
     manifest_filename = f"manifest_{filename.replace('signed_', '')}.plist"
-    manifest_path = os.path.join(current_app.config['SIGNED_FOLDER'], manifest_filename)
+    
+    # Check if manifest exists
+    manifest_path = storage_manager.get_file(os.path.join('manifests', manifest_filename))
     
     # Create manifest if it doesn't exist
-    if not os.path.exists(manifest_path):
-        app_info = extract_app_info(os.path.join(current_app.config['SIGNED_FOLDER'], filename))
-        create_ota_manifest(
-            manifest_path,
-            app_info,
-            request.host_url + url_for('main.download_file', filename=filename)[1:],
-            filename
-        )
+    if not manifest_path:
+        # Create a temporary directory for the manifest
+        temp_dir = tempfile.mkdtemp()
+        try:
+            temp_manifest_path = os.path.join(temp_dir, manifest_filename)
+            
+            # Extract app info from the IPA
+            app_info = extract_app_info(file_path)
+            
+            # Create OTA manifest
+            create_ota_manifest(
+                temp_manifest_path,
+                app_info,
+                request.host_url + url_for('main.download_file', filename=filename)[1:],
+                filename
+            )
+            
+            # Store the manifest using Git LFS
+            with open(temp_manifest_path, 'rb') as f:
+                success, manifest_stored_path = storage_manager.save_file(f, 'manifests', manifest_filename)
+                if not success:
+                    flash(f"Error storing manifest: {manifest_stored_path}", "error")
+                    return redirect(url_for('main.index'))
+        finally:
+            # Clean up temporary directory
+            shutil.rmtree(temp_dir, ignore_errors=True)
     
     # Generate OTA installation URL
     ota_url = f"itms-services://?action=download-manifest&url={request.host_url}{url_for('main.download_manifest', filename=manifest_filename)[1:]}"
@@ -589,6 +664,15 @@ def extract_entitlements():
             ipa_file.save(ipa_path)
             provision_file.save(provision_path)
             
+            # Store files temporarily using Git LFS for future reference
+            session_id = str(uuid.uuid4())
+            
+            with open(ipa_path, 'rb') as f:
+                storage_manager.save_file(f, 'temp', f"{session_id}_{os.path.basename(ipa_path)}")
+            
+            with open(provision_path, 'rb') as f:
+                storage_manager.save_file(f, 'temp', f"{session_id}_{os.path.basename(provision_path)}")
+            
             # Extract entitlements
             app_entitlements = extract_app_entitlements(ipa_path)
             provision_entitlements = extract_provision_entitlements(provision_path)
@@ -619,7 +703,8 @@ def extract_entitlements():
                 'app_entitlements': app_entitlements,
                 'provision_entitlements': provision_entitlements,
                 'all_entitlements': all_entitlements,
-                'provision_info': provision_info
+                'provision_info': provision_info,
+                'session_id': session_id
             })
             
         finally:

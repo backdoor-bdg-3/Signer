@@ -7,6 +7,7 @@ import threading
 import queue
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
+from app.utils.storage import storage_manager
 
 # Configure logging
 logging.basicConfig(
@@ -117,6 +118,13 @@ class SigningHandler(FileSystemEventHandler):
                 with open(os.path.join(job_dir, 'success.log'), 'w') as f:
                     f.write(stdout)
                     f.write(f"\nOutput file: {output_filename}")
+            
+            # Store the signed IPA using Git LFS
+            if os.path.exists(output_path):
+                with open(output_path, 'rb') as f:
+                    success, stored_path = storage_manager.save_file(f, 'signed', output_filename)
+                    if not success:
+                        logger.error(f"Error storing signed IPA: {stored_path}")
             
             # Create completion marker
             with open(os.path.join(job_dir, 'completed'), 'w') as f:
