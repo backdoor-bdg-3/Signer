@@ -24,7 +24,7 @@ services:
       - key: PORT
         sync: false
 
-  - type: worker
+  - type: web
     name: backdoor-web-signer-worker
     env: python
     buildCommand: |
@@ -42,3 +42,5 @@ services:
         value: 2
       - key: LFS_STORAGE_PATH
         value: /opt/render/project/src/storage
+      - key: PORT
+        value: 10000
