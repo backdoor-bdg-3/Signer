@@ -8,6 +8,9 @@ import zipfile
 import base64
 import re
 import tempfile
+import platform
+import stat
+import sys
 from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, send_from_directory, current_app, Response, session
 from werkzeug.utils import secure_filename
@@ -89,17 +92,60 @@ def sign_app():
         provision_info = extract_udids_from_provision(provision_path)
         
         # Execute zsign command - use full path to ensure it's found
-        zsign_path = '/usr/local/bin/zsign'
-        if not os.path.exists(zsign_path):
-            # Fall back to PATH resolution if the direct path doesn't exist
+        # Try multiple possible locations where zsign might be installed
+        zsign_candidate_paths = [
+            '/usr/local/bin/zsign',
+            '/usr/bin/zsign',
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'zsign'),
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), 'zsign'),
+            os.path.join(os.getcwd(), 'zsign')
+        ]
+        
+        zsign_path = None
+        
+        # First try to find zsign in known locations
+        for path in zsign_candidate_paths:
+            print(f"Checking for zsign at: {path}")
+            if os.path.exists(path) and os.access(path, os.X_OK):
+                zsign_path = path
+                print(f"Found zsign at: {path}")
+                break
+        
+        # If not found, try using PATH
+        if not zsign_path:
             zsign_path = shutil.which('zsign')
-            if not zsign_path:
-                # Last resort - try the symlink location
-                if os.path.exists('/usr/bin/zsign'):
-                    zsign_path = '/usr/bin/zsign'
-                else:
-                    flash(f"zsign executable not found. Please check installation.", "error")
-                    return redirect(url_for('main.index'))
+            if zsign_path:
+                print(f"Found zsign in PATH: {zsign_path}")
+        
+        # If zsign is still not found, try to install it
+        if not zsign_path:
+            print("zsign not found, attempting to install it...")
+            try:
+                install_script = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'install_zsign.sh')
+                if os.path.exists(install_script):
+                    # Make script executable
+                    os.chmod(install_script, os.stat(install_script).st_mode | stat.S_IEXEC)
+                    subprocess.run([install_script], check=True)
+                    
+                    # Check if installation was successful
+                    for path in zsign_candidate_paths:
+                        if os.path.exists(path) and os.access(path, os.X_OK):
+                            zsign_path = path
+                            print(f"Installed zsign at: {path}")
+                            break
+                    
+                    # If still not found, try PATH again
+                    if not zsign_path:
+                        zsign_path = shutil.which('zsign')
+            except Exception as install_err:
+                print(f"Error installing zsign: {str(install_err)}")
+        
+        # If zsign still not found, show error
+        if not zsign_path:
+            flash(f"zsign executable not found. Please check installation.", "error")
+            return redirect(url_for('main.index'))
+            
+        print(f"Using zsign at: {zsign_path}")
                 
         cmd = [
             zsign_path, 
@@ -252,17 +298,60 @@ def sign_app_advanced():
         provision_info = extract_udids_from_provision(provision_path)
         
         # Execute zsign command - use full path to ensure it's found
-        zsign_path = '/usr/local/bin/zsign'
-        if not os.path.exists(zsign_path):
-            # Fall back to PATH resolution if the direct path doesn't exist
+        # Try multiple possible locations where zsign might be installed
+        zsign_candidate_paths = [
+            '/usr/local/bin/zsign',
+            '/usr/bin/zsign',
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'zsign'),
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), 'zsign'),
+            os.path.join(os.getcwd(), 'zsign')
+        ]
+        
+        zsign_path = None
+        
+        # First try to find zsign in known locations
+        for path in zsign_candidate_paths:
+            print(f"Checking for zsign at: {path}")
+            if os.path.exists(path) and os.access(path, os.X_OK):
+                zsign_path = path
+                print(f"Found zsign at: {path}")
+                break
+        
+        # If not found, try using PATH
+        if not zsign_path:
             zsign_path = shutil.which('zsign')
-            if not zsign_path:
-                # Last resort - try the symlink location
-                if os.path.exists('/usr/bin/zsign'):
-                    zsign_path = '/usr/bin/zsign'
-                else:
-                    flash(f"zsign executable not found. Please check installation.", "error")
-                    return redirect(url_for('main.advanced'))
+            if zsign_path:
+                print(f"Found zsign in PATH: {zsign_path}")
+        
+        # If zsign is still not found, try to install it
+        if not zsign_path:
+            print("zsign not found, attempting to install it...")
+            try:
+                install_script = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'install_zsign.sh')
+                if os.path.exists(install_script):
+                    # Make script executable
+                    os.chmod(install_script, os.stat(install_script).st_mode | stat.S_IEXEC)
+                    subprocess.run([install_script], check=True)
+                    
+                    # Check if installation was successful
+                    for path in zsign_candidate_paths:
+                        if os.path.exists(path) and os.access(path, os.X_OK):
+                            zsign_path = path
+                            print(f"Installed zsign at: {path}")
+                            break
+                    
+                    # If still not found, try PATH again
+                    if not zsign_path:
+                        zsign_path = shutil.which('zsign')
+            except Exception as install_err:
+                print(f"Error installing zsign: {str(install_err)}")
+        
+        # If zsign still not found, show error
+        if not zsign_path:
+            flash(f"zsign executable not found. Please check installation.", "error")
+            return redirect(url_for('main.advanced'))
+            
+        print(f"Using zsign at: {zsign_path}")
                 
         cmd = [
             zsign_path, 
@@ -439,58 +528,145 @@ def extract_app_info(ipa_path):
 def extract_app_entitlements(ipa_path):
     """Extract entitlements from the IPA file"""
     try:
+        print(f"Starting extraction of entitlements from IPA: {ipa_path}")
+        if not os.path.exists(ipa_path):
+            print(f"Error: IPA file does not exist at {ipa_path}")
+            return {}
+        
+        if not zipfile.is_zipfile(ipa_path):
+            print(f"Error: {ipa_path} is not a valid zip/IPA file")
+            return {}
+            
         # Create a temporary directory
         with tempfile.TemporaryDirectory() as temp_dir:
-            # Extract the IPA
-            with zipfile.ZipFile(ipa_path, 'r') as zip_ref:
-                zip_ref.extractall(temp_dir)
+            print(f"Created temp directory for IPA extraction: {temp_dir}")
+            
+            # Extract the IPA with error handling
+            try:
+                with zipfile.ZipFile(ipa_path, 'r') as zip_ref:
+                    # Get a list of files to extract for logging
+                    file_list = zip_ref.namelist()
+                    print(f"IPA contains {len(file_list)} files")
+                    
+                    # Extract all files
+                    zip_ref.extractall(temp_dir)
+                    print(f"Successfully extracted IPA to {temp_dir}")
+            except zipfile.BadZipFile as bz:
+                print(f"Bad zip file: {str(bz)}")
+                return {}
+            except Exception as zip_err:
+                print(f"Error extracting IPA: {str(zip_err)}")
+                return {}
             
             # Find the app directory
             app_dir = None
             payload_dir = os.path.join(temp_dir, 'Payload')
             if os.path.exists(payload_dir):
-                for item in os.listdir(payload_dir):
-                    if item.endswith('.app'):
-                        app_dir = os.path.join(payload_dir, item)
-                        break
+                app_dirs = [item for item in os.listdir(payload_dir) if item.endswith('.app')]
+                print(f"Found {len(app_dirs)} .app directories: {app_dirs}")
+                
+                if app_dirs:
+                    app_dir = os.path.join(payload_dir, app_dirs[0])
+                    print(f"Selected app directory: {app_dir}")
+            else:
+                print(f"Payload directory not found at {payload_dir}")
             
             if not app_dir:
+                print("No .app directory found in IPA")
                 return {}
             
             # Find embedded.mobileprovision
             provision_path = os.path.join(app_dir, 'embedded.mobileprovision')
             if os.path.exists(provision_path):
-                return extract_provision_entitlements(provision_path)
+                print(f"Found embedded.mobileprovision at {provision_path}")
+                entitlements = extract_provision_entitlements(provision_path)
+                print(f"Extracted {len(entitlements)} entitlements from embedded provision")
+                return entitlements
+            else:
+                print(f"No embedded.mobileprovision found at {provision_path}")
+            
+            # Try to find an entitlements file directly
+            entitlements_path = os.path.join(app_dir, 'entitlements.plist')
+            if os.path.exists(entitlements_path):
+                print(f"Found direct entitlements.plist at {entitlements_path}")
+                try:
+                    with open(entitlements_path, 'rb') as f:
+                        entitlements = plistlib.load(f)
+                        return entitlements
+                except Exception as plist_err:
+                    print(f"Error reading entitlements.plist: {str(plist_err)}")
             
             return {}
     except Exception as e:
         print(f"Error extracting app entitlements: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
         return {}
 
 def extract_provision_entitlements(provision_path):
     """Extract entitlements from a provisioning profile"""
     try:
+        print(f"Extracting entitlements from provision: {provision_path}")
+        if not os.path.exists(provision_path):
+            print(f"Error: Provision file does not exist at {provision_path}")
+            return {}
+            
+        if os.path.getsize(provision_path) == 0:
+            print(f"Error: Provision file is empty at {provision_path}")
+            return {}
+        
         # Read the provisioning profile
-        with open(provision_path, 'rb') as f:
-            data = f.read()
+        try:
+            with open(provision_path, 'rb') as f:
+                data = f.read()
+                print(f"Read {len(data)} bytes from provision file")
+        except Exception as read_err:
+            print(f"Error reading provision file: {str(read_err)}")
+            return {}
         
         # Extract the plist data
         pattern = b'<plist.*?</plist>'
         match = re.search(pattern, data, re.DOTALL)
         
         if not match:
-            return {}
-        
-        plist_data = match.group(0)
+            print("No plist data found in provision file")
+            # Try an alternative approach - sometimes the plist data is at the end
+            # Look for the last occurrence of <plist and </plist>
+            plist_start = data.rfind(b'<plist')
+            plist_end = data.rfind(b'</plist>') + len(b'</plist>')
+            
+            if plist_start >= 0 and plist_end > plist_start:
+                plist_data = data[plist_start:plist_end]
+                print(f"Found plist data using alternative method ({len(plist_data)} bytes)")
+            else:
+                print("Could not find plist data in provision file")
+                return {}
+        else:
+            plist_data = match.group(0)
+            print(f"Found plist data using regex ({len(plist_data)} bytes)")
         
         # Parse the plist
-        provision = plistlib.loads(plist_data)
+        try:
+            provision = plistlib.loads(plist_data)
+            print(f"Successfully parsed plist data")
+        except Exception as plist_err:
+            print(f"Error parsing plist data: {str(plist_err)}")
+            return {}
         
         # Get the entitlements
         entitlements = provision.get('Entitlements', {})
+        print(f"Extracted {len(entitlements)} entitlements from provision")
+        
+        # Log a few entitlements for debugging
+        if entitlements:
+            sample_keys = list(entitlements.keys())[:3]  # First 3 keys
+            print(f"Sample entitlements: {', '.join(sample_keys)}")
+        
         return entitlements
     except Exception as e:
         print(f"Error extracting provision entitlements: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
         return {}
         
 def extract_udids_from_provision(provision_path):

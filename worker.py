@@ -92,19 +92,63 @@ class SigningHandler(FileSystemEventHandler):
             output_path = os.path.join(self.signed_dir, output_filename)
             
             # Execute zsign command - use full path to ensure it's found
-            zsign_path = '/usr/local/bin/zsign'
-            if not os.path.exists(zsign_path):
-                # Fall back to PATH resolution if the direct path doesn't exist
+            # Try multiple possible locations where zsign might be installed
+            zsign_candidate_paths = [
+                '/usr/local/bin/zsign',
+                '/usr/bin/zsign',
+                os.path.join(os.path.dirname(os.path.abspath(__file__)), 'zsign'),
+                os.path.join(os.getcwd(), 'zsign')
+            ]
+            
+            zsign_path = None
+            
+            # First try to find zsign in known locations
+            for path in zsign_candidate_paths:
+                logger.info(f"Checking for zsign at: {path}")
+                if os.path.exists(path) and os.access(path, os.X_OK):
+                    zsign_path = path
+                    logger.info(f"Found zsign at: {path}")
+                    break
+            
+            # If not found, try using PATH
+            if not zsign_path:
                 zsign_path = shutil.which('zsign')
-                if not zsign_path:
-                    # Last resort - try the symlink location
-                    if os.path.exists('/usr/bin/zsign'):
-                        zsign_path = '/usr/bin/zsign'
-                    else:
-                        logger.error("zsign executable not found. Please check installation.")
-                        with open(os.path.join(job_dir, 'error.log'), 'w') as f:
-                            f.write("zsign executable not found. Please check installation.")
-                        return
+                if zsign_path:
+                    logger.info(f"Found zsign in PATH: {zsign_path}")
+            
+            # If zsign is still not found, try to install it
+            if not zsign_path:
+                logger.info("zsign not found, attempting to install it...")
+                try:
+                    install_script = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'install_zsign.sh')
+                    if os.path.exists(install_script):
+                        # Make script executable
+                        import stat
+                        os.chmod(install_script, os.stat(install_script).st_mode | stat.S_IEXEC)
+                        subprocess.run([install_script], check=True)
+                        
+                        # Check if installation was successful
+                        for path in zsign_candidate_paths:
+                            if os.path.exists(path) and os.access(path, os.X_OK):
+                                zsign_path = path
+                                logger.info(f"Installed zsign at: {path}")
+                                break
+                        
+                        # If still not found, try PATH again
+                        if not zsign_path:
+                            zsign_path = shutil.which('zsign')
+                except Exception as install_err:
+                    logger.error(f"Error installing zsign: {str(install_err)}")
+            
+            # If zsign still not found, show error
+            if not zsign_path:
+                error_msg = "zsign executable not found. Please check installation."
+                logger.error(error_msg)
+                with open(os.path.join(job_dir, 'error.log'), 'w') as f:
+                    f.write(error_msg)
+                return
+                
+            logger.info(f"Using zsign at: {zsign_path}")
                     
             cmd = [
                 zsign_path, 
