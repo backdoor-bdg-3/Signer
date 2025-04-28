@@ -24,6 +24,49 @@
         margin: 0 auto;
     }
     
+    /* Status badges for entitlements */
+    .status-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .status-badge.enabled {
+        background-color: rgba(76, 175, 80, 0.2);
+        color: #4CAF50;
+        border: 1px solid rgba(76, 175, 80, 0.4);
+    }
+    
+    .status-badge.disabled {
+        background-color: rgba(244, 67, 54, 0.2);
+        color: #F44336;
+        border: 1px solid rgba(244, 67, 54, 0.4);
+    }
+    
+    /* Array and object formatting */
+    .empty-array {
+        color: #9e9e9e;
+        font-style: italic;
+    }
+    
+    .array-value, .object-value {
+        margin-top: 8px;
+    }
+    
+    .array-item {
+        margin-bottom: 4px;
+        padding-left: 16px;
+    }
+    
+    .object-property {
+        margin-bottom: 4px;
+        padding-left: 16px;
+    }
+    
     .entitlements-container {
         background-color: var(--dark-surface);
         border-radius: var(--border-radius-lg);
@@ -145,24 +188,40 @@
     }
     
     .entitlement-item {
-        display: flex;
         margin-bottom: var(--spacing-sm);
-        padding: var(--spacing-sm);
-        background-color: rgba(0, 0, 0, 0.2);
-        border-radius: var(--border-radius-sm);
-        align-items: center;
     }
     
-    .entitlement-item:hover {
-        background-color: rgba(255, 255, 255, 0.05);
+    .entitlement-box {
+        background-color: var(--dark-surface-2);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: var(--border-radius-md);
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .entitlement-box:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+    
+    .entitlement-header {
+        background-color: rgba(0, 0, 0, 0.2);
+        padding: var(--spacing-sm) var(--spacing-md);
+        display: flex;
+        align-items: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .entitlement-body {
+        padding: var(--spacing-md);
     }
     
     .entitlement-checkbox {
-        margin-right: var(--spacing-sm);
-    }
-    
-    .entitlement-info {
-        flex-grow: 1;
+        margin-right: var(--spacing-md);
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
     }
     
     .entitlement-name {
@@ -171,9 +230,11 @@
         display: flex;
         align-items: center;
         gap: var(--spacing-sm);
+        flex-grow: 1;
+        font-size: 1rem;
     }
     
-    .entitlement-name .app-badge {
+    .app-badge {
         background-color: var(--primary-color);
         color: white;
         font-size: 0.7rem;
@@ -182,7 +243,7 @@
         margin-left: var(--spacing-sm);
     }
     
-    .entitlement-name .provision-badge {
+    .provision-badge {
         background-color: var(--secondary-color);
         color: white;
         font-size: 0.7rem;
@@ -193,19 +254,21 @@
     
     .entitlement-description {
         color: var(--text-secondary);
-        font-size: 0.9rem;
-        margin-top: 4px;
+        font-size: 0.95rem;
+        margin-bottom: var(--spacing-sm);
+        line-height: 1.4;
+        padding-left: 1.5rem;
     }
     
     .entitlement-value {
         font-family: monospace;
         background-color: rgba(0, 0, 0, 0.3);
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 0.85rem;
-        margin-top: 4px;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 0.9rem;
         word-break: break-all;
         color: var(--text-tertiary);
+        margin-top: var(--spacing-sm);
     }
     
     .entitlements-summary {
@@ -251,6 +314,104 @@
         display: flex;
         align-items: center;
         gap: var(--spacing-sm);
+    }
+    
+    /* Provision details styling */
+    .provision-details {
+        padding: var(--spacing-md);
+    }
+    
+    .provision-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    
+    .provision-item {
+        background-color: rgba(0, 0, 0, 0.15);
+        border-radius: 8px;
+        padding: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: transform 0.2s;
+    }
+    
+    .provision-item:hover {
+        transform: translateY(-2px);
+        background-color: rgba(0, 0, 0, 0.25);
+    }
+    
+    .provision-label {
+        color: var(--text-tertiary);
+        font-size: 0.85rem;
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .provision-label i {
+        color: var(--primary-light);
+    }
+    
+    .provision-value {
+        color: var(--text-primary);
+        font-size: 1rem;
+        font-weight: 500;
+    }
+    
+    .provision-value.expired {
+        color: #F44336;
+    }
+    
+    /* Devices section */
+    .provision-devices {
+        background-color: rgba(0, 0, 0, 0.15);
+        border-radius: 8px;
+        padding: 16px;
+        margin-top: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .provision-devices h4 {
+        font-size: 1rem;
+        color: var(--primary-light);
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .udids-list {
+        max-height: 200px;
+        overflow-y: auto;
+        margin-top: 12px;
+        padding: 8px;
+        background-color: rgba(0, 0, 0, 0.2);
+        border-radius: 6px;
+    }
+    
+    .udids-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 8px;
+    }
+    
+    .udid-item {
+        font-family: monospace;
+        font-size: 0.8rem;
+        background-color: rgba(0, 0, 0, 0.3);
+        padding: 6px 10px;
+        border-radius: 4px;
+        color: var(--text-tertiary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .no-devices {
+        color: var(--text-tertiary);
+        font-style: italic;
     }
     
     .info-icon {
@@ -643,33 +804,89 @@
         function createProvisionInfoTable(provisionInfo) {
             let html = '<div class="provision-details">';
             
+            // Main provision details in grid layout
+            html += '<div class="provision-grid">';
+            
             if (provisionInfo.profile_name) {
-                html += `<p><strong>Profile Name:</strong> ${provisionInfo.profile_name}</p>`;
+                html += `
+                <div class="provision-item">
+                    <div class="provision-label"><i class="fas fa-tag"></i> Profile Name</div>
+                    <div class="provision-value">${provisionInfo.profile_name}</div>
+                </div>`;
             }
             
             if (provisionInfo.team_name) {
-                html += `<p><strong>Team Name:</strong> ${provisionInfo.team_name}</p>`;
+                html += `
+                <div class="provision-item">
+                    <div class="provision-label"><i class="fas fa-users"></i> Team Name</div>
+                    <div class="provision-value">${provisionInfo.team_name}</div>
+                </div>`;
+            }
+            
+            if (provisionInfo.app_id_name) {
+                html += `
+                <div class="provision-item">
+                    <div class="provision-label"><i class="fas fa-cube"></i> App ID Name</div>
+                    <div class="provision-value">${provisionInfo.app_id_name}</div>
+                </div>`;
             }
             
             if (provisionInfo.creation_date) {
-                const date = new Date(provisionInfo.creation_date);
-                html += `<p><strong>Creation Date:</strong> ${date.toLocaleDateString()}</p>`;
+                const creationDate = new Date(provisionInfo.creation_date);
+                html += `
+                <div class="provision-item">
+                    <div class="provision-label"><i class="fas fa-calendar-plus"></i> Created</div>
+                    <div class="provision-value">${creationDate.toLocaleDateString()} ${creationDate.toLocaleTimeString()}</div>
+                </div>`;
             }
             
+            if (provisionInfo.expiration_date) {
+                const expirationDate = new Date(provisionInfo.expiration_date);
+                const now = new Date();
+                const isExpired = expirationDate < now;
+                
+                html += `
+                <div class="provision-item">
+                    <div class="provision-label"><i class="fas fa-calendar-times"></i> Expires</div>
+                    <div class="provision-value ${isExpired ? 'expired' : ''}">${expirationDate.toLocaleDateString()} ${expirationDate.toLocaleTimeString()}</div>
+                </div>`;
+            }
+            
+            if (provisionInfo.platform && provisionInfo.platform.length) {
+                html += `
+                <div class="provision-item">
+                    <div class="provision-label"><i class="fas fa-mobile-alt"></i> Platform</div>
+                    <div class="provision-value">${provisionInfo.platform.join(', ')}</div>
+                </div>`;
+            }
+            
+            html += '</div>'; // End provision-grid
+            
+            // Devices section
             if (provisionInfo.udids && provisionInfo.udids.length > 0) {
-                html += `<p><strong>Provisioned Devices:</strong> ${provisionInfo.udids.length} device(s)</p>`;
-                html += '<div class="udids-list" style="max-height: 150px; overflow-y: auto; margin-top: 8px;">';
-                html += '<ul style="padding-left: 20px; margin: 0;">';
+                html += `
+                <div class="provision-devices">
+                    <h4><i class="fas fa-tablet-alt"></i> Provisioned Devices (${provisionInfo.udids.length})</h4>
+                    <div class="udids-list">
+                        <div class="udids-grid">`;
                 
                 provisionInfo.udids.forEach(udid => {
-                    html += `<li style="margin-bottom: 4px; font-family: monospace; font-size: 0.8rem;">${udid}</li>`;
+                    html += `<div class="udid-item">${udid}</div>`;
                 });
                 
-                html += '</ul>';
-                html += '</div>';
+                html += `
+                        </div>
+                    </div>
+                </div>`;
+            } else {
+                html += `
+                <div class="provision-devices">
+                    <h4><i class="fas fa-tablet-alt"></i> Provisioned Devices</h4>
+                    <p class="no-devices">No specific devices provisioned (distribution profile)</p>
+                </div>`;
             }
             
-            html += '</div>';
+            html += '</div>'; // End provision-details
             return html;
         }
         
@@ -767,25 +984,39 @@
             const valueStr = JSON.stringify(value);
             let valueDisplay = formatEntitlementValue(value);
             
+            // Determine status indicator (green circle for enabled, red circle for disabled)
+            let statusIndicator = '';
+            if (typeof value === 'boolean') {
+                statusIndicator = value ? '🟢' : '🔴';
+            } else if (Array.isArray(value) && value.length > 0) {
+                statusIndicator = '🟢';
+            } else if (typeof value === 'object' && value !== null && Object.keys(value).length > 0) {
+                statusIndicator = '🟢';
+            } else if (value) {
+                statusIndicator = '🟢';
+            } else {
+                statusIndicator = '🔴';
+            }
+            
             // Get description or default
             const description = entitlementDescriptions[key] || 'This entitlement configures app capabilities.';
             
             // Create the HTML structure
             itemDiv.innerHTML = `
-                <input type="checkbox" class="entitlement-checkbox" id="entitlement-${key.replace(/\./g, '-')}" 
-                       data-key="${key}" data-value='${valueStr}' ${inApp ? 'checked' : ''}>
-                <div class="entitlement-info">
-                    <div class="entitlement-name">
-                        ${key}
-                        ${inApp ? '<span class="app-badge">App</span>' : ''}
-                        ${inProvision ? '<span class="provision-badge">Provision</span>' : ''}
-                        <div class="tooltip">
-                            <i class="fas fa-info-circle info-icon"></i>
-                            <span class="tooltip-text">${description}</span>
+                <div class="entitlement-box">
+                    <div class="entitlement-header">
+                        <input type="checkbox" class="entitlement-checkbox" id="entitlement-${key.replace(/\./g, '-')}" 
+                               data-key="${key}" data-value='${valueStr}' ${inApp ? 'checked' : ''}>
+                        <div class="entitlement-name">
+                            ${statusIndicator} ${key}
+                            ${inApp ? '<span class="app-badge">App</span>' : ''}
+                            ${inProvision ? '<span class="provision-badge">Provision</span>' : ''}
                         </div>
                     </div>
-                    <div class="entitlement-description">${description}</div>
-                    <div class="entitlement-value">${valueDisplay}</div>
+                    <div class="entitlement-body">
+                        <div class="entitlement-description">${description}</div>
+                        <div class="entitlement-value">${valueDisplay}</div>
+                    </div>
                 </div>
             `;
             
@@ -795,16 +1026,31 @@
         // Format entitlement value for display
         function formatEntitlementValue(value) {
             if (typeof value === 'boolean') {
-                return value ? '<span style="color: #4CAF50;">true</span>' : '<span style="color: #F44336;">false</span>';
+                return value ? 
+                    '<span class="status-badge enabled">Enabled</span>' : 
+                    '<span class="status-badge disabled">Disabled</span>';
             } else if (Array.isArray(value)) {
-                if (value.length === 0) return '[]';
-                return JSON.stringify(value, null, 2)
-                    .replace(/\n/g, '<br>')
-                    .replace(/ /g, '&nbsp;');
+                if (value.length === 0) return '<span class="empty-array">Empty Array</span>';
+                
+                let result = '<div class="array-value">';
+                for (const item of value) {
+                    result += `<div class="array-item">• ${String(item)}</div>`;
+                }
+                result += '</div>';
+                return result;
             } else if (typeof value === 'object' && value !== null) {
-                return JSON.stringify(value, null, 2)
-                    .replace(/\n/g, '<br>')
-                    .replace(/ /g, '&nbsp;');
+                let result = '<div class="object-value">';
+                for (const [k, v] of Object.entries(value)) {
+                    let formattedValue;
+                    if (typeof v === 'object' && v !== null) {
+                        formattedValue = JSON.stringify(v);
+                    } else {
+                        formattedValue = String(v);
+                    }
+                    result += `<div class="object-property"><strong>${k}:</strong> ${formattedValue}</div>`;
+                }
+                result += '</div>';
+                return result;
             } else {
                 return String(value);
             }
@@ -910,24 +1156,6 @@
     });
 </script>
 {% endblock %}
-                        <td class="key-column">${key}</td>
-                        <td class="value-column">
-                            <span class="entitlements-value" id="${elementId}" data-value='${valueStr}'>${valueDisplay}</span>
-                        </td>
-                        <td class="select-column">
-                            <div class="checkbox-wrapper">
-                                <input type="checkbox" class="custom-checkbox entitlement-checkbox" 
-                                       id="${type}-checkbox-${key.replace(/\./g, '-')}" 
-                                       data-key="${key}" 
-                                       data-type="${type}" 
-                                       checked>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            }
-            
-            html += `
                     </tbody>
                 </table>
             `;
