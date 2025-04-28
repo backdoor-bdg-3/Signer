@@ -16,7 +16,7 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: MAX_WORKERS
-        value: 2
+        value: 5
       - key: TIMEOUT
         value: 600
       - key: LFS_REPO_PATH
@@ -37,7 +37,7 @@ services:
       - key: PYTHON_VERSION
         value: 3.9.0
       - key: SECRET_KEY
-        sync: true
+        fromGroup: backdoor-web-signer
       - key: MAX_CONCURRENT_TASKS
         value: 2
       - key: LFS_REPO_PATH
