@@ -5,6 +5,8 @@ import subprocess
 import shutil
 import threading
 import queue
+import http.server
+import socketserver
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from app.utils.storage import storage_manager
@@ -150,6 +152,47 @@ class SigningHandler(FileSystemEventHandler):
             if session_id in self.processing:
                 self.processing.remove(session_id)
 
+# Simple HTTP handler for health checks
+class HealthCheckHandler(http.server.BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path == '/health':
+            # Health check endpoint
+            self.send_response(200)
+            self.send_header('Content-type', 'text/plain')
+            self.end_headers()
+            self.wfile.write(b'Worker service is running')
+        else:
+            # Default response for all other requests
+            self.send_response(200)
+            self.send_header('Content-type', 'text/plain')
+            self.end_headers()
+            self.wfile.write(b'Backdoor Signer Worker Service')
+    
+    # Make the server more quiet
+    def log_message(self, format, *args):
+        # Don't log all HTTP requests to stdout
+        if 'health' not in args[0]:  # Skip health check logs to reduce noise
+            logger.debug(f"HTTP: {args[0]}")
+
+def start_http_server():
+    """Start a simple HTTP server for health checks"""
+    try:
+        # Get port from environment variable
+        port = int(os.environ.get('PORT', 10000))
+        
+        # Create and start the HTTP server
+        httpd = socketserver.TCPServer(("", port), HealthCheckHandler)
+        logger.info(f"Starting HTTP server for health checks on port {port}")
+        
+        # Run in a separate thread to not block the main worker
+        server_thread = threading.Thread(target=httpd.serve_forever, daemon=True)
+        server_thread.start()
+        
+        return httpd
+    except Exception as e:
+        logger.error(f"Failed to start HTTP server: {str(e)}")
+        return None
+
 def main():
     # Get directories from environment or use defaults
     app_dir = os.environ.get('APP_DIR', os.path.dirname(os.path.abspath(__file__)))
@@ -164,6 +207,9 @@ def main():
     max_concurrent = int(os.environ.get('MAX_CONCURRENT_TASKS', 2))
     
     logger.info(f"Starting worker with {max_concurrent} concurrent tasks. Monitoring directory: {upload_dir}")
+    
+    # Start HTTP server for health checks (required by Render)
+    http_server = start_http_server()
     
     # Process any existing jobs that might have been left from a previous run
     for item in os.listdir(upload_dir):
@@ -183,10 +229,13 @@ def main():
     observer.start()
     
     try:
+        logger.info("Worker service is running. Press Ctrl+C to stop.")
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
         observer.stop()
+        if http_server:
+            http_server.shutdown()
     
     logger.info("Shutting down worker...")
     observer.join()
